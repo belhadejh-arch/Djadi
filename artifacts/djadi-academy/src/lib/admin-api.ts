@@ -3,6 +3,8 @@
 
 const BASE = "/api/admin";
 
+const BASE_URL = import.meta.env.BASE_URL?.replace(/\/$/, "") || "";
+
 async function request<T>(
   method: string,
   path: string,
@@ -134,5 +136,17 @@ export const adminApi = {
     create: (body: any) => request<any>("POST", "/language-settings", body),
     update: (id: number, body: any) => request<any>("PATCH", `/language-settings/${id}`, body),
     delete: (id: number) => request<any>("DELETE", `/language-settings/${id}`),
+  },
+  // Dashboard
+  dashboard: {
+    stats: () => request<any>("GET", "/dashboard/stats"),
+  },
+  // Backup
+  backup: {
+    list: () => request<any[]>("GET", "/backup"),
+    create: () => request<any>("POST", "/backup/create"),
+    restore: (payload: any) => request<any>("POST", "/backup/restore", payload),
+    delete: (id: string) => request<any>("DELETE", `/backup/${id}`),
+    downloadUrl: (id: string) => `${BASE_URL}${BASE}/backup/${id}/download`,
   },
 };

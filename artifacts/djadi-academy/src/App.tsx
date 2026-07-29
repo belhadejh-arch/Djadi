@@ -48,6 +48,7 @@ import AdminReviewChannels from '@/pages/admin/review-channels';
 import AdminAnnouncements from '@/pages/admin/announcements';
 import AdminNotifications from '@/pages/admin/notifications';
 import AdminLanguageSettings from '@/pages/admin/language-settings';
+import AdminBackup from '@/pages/admin/backup';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -166,6 +167,9 @@ function Router() {
       </Route>
       <Route path="/admin/language-settings">
         <AdminRoute><AdminLanguageSettings /></AdminRoute>
+      </Route>
+      <Route path="/admin/backup">
+        <AdminRoute><AdminBackup /></AdminRoute>
       </Route>
 
       <Route component={NotFound} />

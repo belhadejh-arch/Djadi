@@ -12,12 +12,16 @@ import reviewChannelsRouter from "./review-channels";
 import announcementsRouter from "./announcements";
 import notificationsRouter from "./notifications";
 import languageSettingsRouter from "./language-settings";
+import dashboardRouter from "./dashboard";
+import backupRouter from "./backup";
 
 const router: IRouter = Router();
 
 // All admin routes require super_admin role
 router.use(requireAdmin);
 
+router.use("/dashboard", dashboardRouter);
+router.use("/backup", backupRouter);
 router.use("/users", usersRouter);
 router.use("/levels", levelsRouter);
 router.use("/branches", branchesRouter);
