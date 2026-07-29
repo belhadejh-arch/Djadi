@@ -41,15 +41,20 @@ app.use(
 // Required when running behind a reverse proxy (Render, Replit) so secure
 // cookies and rate limiting see the real client IP/protocol.
 app.set("trust proxy", 1);
-// FRONTEND_URL must be set on Render to the Vercel domain (e.g. https://xxx.vercel.app)
+// FRONTEND_URL must be set on Render to the frontend domain (e.g. https://djadi.onrender.com).
+// Supports comma-separated list for multiple allowed origins.
 // Falls back to allowing any origin in development.
-const allowedOrigin = process.env.FRONTEND_URL;
+const rawFrontendUrl = process.env.FRONTEND_URL;
+const allowedOrigins = rawFrontendUrl
+  ? rawFrontendUrl.split(",").map((u) => u.trim()).filter(Boolean)
+  : null;
+
 app.use(
   cors({
-    origin: allowedOrigin
+    origin: allowedOrigins
       ? (origin, cb) => {
-          // Allow requests with no origin (curl, mobile, same-origin) or matching domain
-          if (!origin || origin === allowedOrigin) return cb(null, true);
+          // Allow requests with no origin (curl, mobile, same-origin) or matching any allowed domain
+          if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
           cb(new Error(`CORS: origin ${origin} not allowed`));
         }
       : true,

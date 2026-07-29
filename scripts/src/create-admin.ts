@@ -1,23 +1,16 @@
 /**
  * Creates or resets the super_admin account.
  * Usage:
- *   DATABASE_URL=<your-db-url> pnpm tsx scripts/src/create-admin.ts
+ *   NEON_DATABASE_URL=<your-db-url> pnpm --filter @workspace/scripts run create-admin
  *
- * Set ADMIN_EMAIL / ADMIN_PASSWORD env vars to override defaults.
+ * Override defaults with env vars:
+ *   ADMIN_EMAIL    (default: admin@djadi.dz)
+ *   ADMIN_PASSWORD (default: Djadi@2025!)
+ *   ADMIN_NAME     (default: المدير العام)
  */
-import { drizzle } from "drizzle-orm/node-postgres";
-import pg from "pg";
-import { randomBytes, pbkdf2Sync } from "crypto";
-import { usersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
-
-const { Pool } = pg;
-
-const connectionString = process.env.DATABASE_URL || process.env.NEON_DATABASE_URL;
-if (!connectionString) {
-  console.error("❌  Set DATABASE_URL before running this script.");
-  process.exit(1);
-}
+import { db, pool, usersTable } from "@workspace/db";
+import { randomBytes, pbkdf2Sync } from "crypto";
 
 const ADMIN_EMAIL    = process.env.ADMIN_EMAIL    ?? "admin@djadi.dz";
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD ?? "Djadi@2025!";
@@ -29,9 +22,6 @@ function hashPassword(password: string): string {
   return `${salt}:${hash}`;
 }
 
-const pool = new Pool({ connectionString });
-const db   = drizzle(pool, { schema: { usersTable } });
-
 async function main() {
   const [existing] = await db
     .select({ id: usersTable.id, role: usersTable.role })
@@ -39,7 +29,6 @@ async function main() {
     .where(eq(usersTable.email, ADMIN_EMAIL.toLowerCase()));
 
   if (existing) {
-    // Update role and reset password
     await db
       .update(usersTable)
       .set({ role: "super_admin", passwordHash: hashPassword(ADMIN_PASSWORD), isActive: true })

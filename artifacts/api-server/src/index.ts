@@ -1,5 +1,6 @@
 import app from "./app";
 import { logger } from "./lib/logger";
+import { seedAdminIfNeeded } from "./lib/seed-admin";
 
 const rawPort = process.env["PORT"];
 
@@ -22,4 +23,8 @@ app.listen(port, (err) => {
   }
 
   logger.info({ port }, "Server listening");
+
+  // Seed super_admin from env vars if ADMIN_EMAIL + ADMIN_PASSWORD are set
+  // and no admin exists yet. Safe to call on every startup.
+  seedAdminIfNeeded().catch((e) => logger.error({ err: e }, "seedAdminIfNeeded threw"));
 });

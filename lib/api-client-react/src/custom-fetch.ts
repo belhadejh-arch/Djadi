@@ -360,7 +360,10 @@ export async function customFetch<T = unknown>(
 
   const requestInfo = { method, url: resolveUrl(input) };
 
-  const response = await fetch(input, { ...init, method, headers });
+  // credentials:"include" is required for cookie-based auth to work on both
+  // same-origin (Vite proxy dev) and cross-origin (Render separate services).
+  const credentials = (init.credentials as RequestCredentials | undefined) ?? "include";
+  const response = await fetch(input, { ...init, method, headers, credentials });
 
   if (!response.ok) {
     const errorData = await parseErrorBody(response, method);

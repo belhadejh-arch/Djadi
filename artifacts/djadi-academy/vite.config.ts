@@ -71,7 +71,9 @@ export default defineConfig({
     allowedHosts: true,
     proxy: {
       '/api': {
-        target: 'http://localhost:8080',
+        // API_PORT is set by Replit for the api-server artifact.
+        // Falls back to 8080 if not provided.
+        target: `http://localhost:${process.env.API_PORT ?? 8080}`,
         changeOrigin: true,
       },
     },
