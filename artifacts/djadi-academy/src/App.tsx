@@ -1,63 +1,87 @@
+import { lazy, Suspense } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import NotFound from '@/pages/not-found';
 import { Route, Switch, Router as WouterRouter } from 'wouter';
 import { ThemeProvider } from '@/components/theme-provider';
 import { LanguageProvider } from '@/lib/language-context';
 import { NotificationsProvider } from '@/lib/notifications-context';
+import { Skeleton } from '@/components/ui/skeleton';
 
-// Layout & Auth
+// Layout & Auth (not lazy — small, needed immediately)
 import { AppLayout } from '@/components/layout/app-layout';
 import { ProtectedRoute } from '@/components/protected-route';
-
-// Pages
-import Splash from '@/pages/splash';
-import Login from '@/pages/login';
-import Register from '@/pages/register';
-import GradeSelect from '@/pages/grade-select';
-import BranchSelect from '@/pages/branch-select';
-import LanguageSelect from '@/pages/language-select';
-import Dashboard from '@/pages/dashboard';
-import Subjects from '@/pages/subjects';
-import SubjectDetail from '@/pages/subject-detail';
-import Lessons from '@/pages/lessons';
-import LessonDetail from '@/pages/lesson-detail';
-import Baccalaureate from '@/pages/baccalaureate';
-import Notifications from '@/pages/notifications';
-import GradeCalculator from '@/pages/grade-calculator';
-import ScientificCalculator from '@/pages/scientific-calculator';
-import ReviewChannels from '@/pages/review-channels';
-import Settings from '@/pages/settings';
-import About from '@/pages/about';
-import PrivacyPolicy from '@/pages/privacy-policy';
-import Terms from '@/pages/terms';
-
-// Admin Pages
 import { AdminRoute } from '@/components/admin-route';
-import AdminDashboard from '@/pages/admin/index';
-import AdminUsers from '@/pages/admin/users';
-import AdminLevels from '@/pages/admin/levels';
-import AdminBranches from '@/pages/admin/branches';
-import AdminSubjects from '@/pages/admin/subjects';
-import AdminLessons from '@/pages/admin/lessons';
-import AdminExams from '@/pages/admin/exams';
-import AdminTests from '@/pages/admin/tests';
-import AdminBaccalaureates from '@/pages/admin/baccalaureates';
-import AdminReviewChannels from '@/pages/admin/review-channels';
-import AdminAnnouncements from '@/pages/admin/announcements';
-import AdminNotifications from '@/pages/admin/notifications';
-import AdminLanguageSettings from '@/pages/admin/language-settings';
-import AdminBackup from '@/pages/admin/backup';
 
+// Splash loaded eagerly (first page the user sees)
+import Splash from '@/pages/splash';
+
+// ── Lazy-loaded student pages ───────────────────────────────────────────────
+const Login               = lazy(() => import('@/pages/login'));
+const Register            = lazy(() => import('@/pages/register'));
+const GradeSelect         = lazy(() => import('@/pages/grade-select'));
+const BranchSelect        = lazy(() => import('@/pages/branch-select'));
+const LanguageSelect      = lazy(() => import('@/pages/language-select'));
+const Dashboard           = lazy(() => import('@/pages/dashboard'));
+const Subjects            = lazy(() => import('@/pages/subjects'));
+const SubjectDetail       = lazy(() => import('@/pages/subject-detail'));
+const Lessons             = lazy(() => import('@/pages/lessons'));
+const LessonDetail        = lazy(() => import('@/pages/lesson-detail'));
+const Baccalaureate       = lazy(() => import('@/pages/baccalaureate'));
+const Notifications       = lazy(() => import('@/pages/notifications'));
+const GradeCalculator     = lazy(() => import('@/pages/grade-calculator'));
+const ScientificCalculator = lazy(() => import('@/pages/scientific-calculator'));
+const ReviewChannels      = lazy(() => import('@/pages/review-channels'));
+const Settings            = lazy(() => import('@/pages/settings'));
+const About               = lazy(() => import('@/pages/about'));
+const PrivacyPolicy       = lazy(() => import('@/pages/privacy-policy'));
+const Terms               = lazy(() => import('@/pages/terms'));
+const NotFound            = lazy(() => import('@/pages/not-found'));
+
+// ── Lazy-loaded admin pages ─────────────────────────────────────────────────
+const AdminDashboard      = lazy(() => import('@/pages/admin/index'));
+const AdminUsers          = lazy(() => import('@/pages/admin/users'));
+const AdminLevels         = lazy(() => import('@/pages/admin/levels'));
+const AdminBranches       = lazy(() => import('@/pages/admin/branches'));
+const AdminSubjects       = lazy(() => import('@/pages/admin/subjects'));
+const AdminLessons        = lazy(() => import('@/pages/admin/lessons'));
+const AdminExams          = lazy(() => import('@/pages/admin/exams'));
+const AdminTests          = lazy(() => import('@/pages/admin/tests'));
+const AdminBaccalaureates = lazy(() => import('@/pages/admin/baccalaureates'));
+const AdminReviewChannels = lazy(() => import('@/pages/admin/review-channels'));
+const AdminAnnouncements  = lazy(() => import('@/pages/admin/announcements'));
+const AdminNotifications  = lazy(() => import('@/pages/admin/notifications'));
+const AdminLanguageSettings = lazy(() => import('@/pages/admin/language-settings'));
+const AdminBackup         = lazy(() => import('@/pages/admin/backup'));
+const AdminAuditLogs      = lazy(() => import('@/pages/admin/audit-logs'));
+
+// ── Query client (performance tuned) ───────────────────────────────────────
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: false,
+      retry: 1,
       refetchOnWindowFocus: false,
+      staleTime: 30 * 1000,          // data is fresh for 30 s
+      gcTime: 5 * 60 * 1000,         // keep unused data 5 min
     },
   },
 });
+
+// ── Suspense fallback (skeleton) ────────────────────────────────────────────
+function PageSkeleton() {
+  return (
+    <div className="p-6 space-y-4 animate-pulse">
+      <Skeleton className="h-8 w-1/3" />
+      <Skeleton className="h-4 w-2/3" />
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Skeleton key={i} className="h-24 w-full rounded-xl" />
+        ))}
+      </div>
+      <Skeleton className="h-64 w-full rounded-xl" />
+    </div>
+  );
+}
 
 function ProtectedLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -69,111 +93,116 @@ function ProtectedLayout({ children }: { children: React.ReactNode }) {
 
 function Router() {
   return (
-    <Switch>
-      <Route path="/" component={Splash} />
-      <Route path="/login" component={Login} />
-      <Route path="/register" component={Register} />
+    <Suspense fallback={<PageSkeleton />}>
+      <Switch>
+        <Route path="/" component={Splash} />
+        <Route path="/login" component={Login} />
+        <Route path="/register" component={Register} />
 
-      <Route path="/grade-select">
-        <ProtectedRoute><GradeSelect /></ProtectedRoute>
-      </Route>
-      <Route path="/branch-select">
-        <ProtectedRoute><BranchSelect /></ProtectedRoute>
-      </Route>
-      <Route path="/language-select">
-        <ProtectedRoute><LanguageSelect /></ProtectedRoute>
-      </Route>
+        <Route path="/grade-select">
+          <ProtectedRoute><GradeSelect /></ProtectedRoute>
+        </Route>
+        <Route path="/branch-select">
+          <ProtectedRoute><BranchSelect /></ProtectedRoute>
+        </Route>
+        <Route path="/language-select">
+          <ProtectedRoute><LanguageSelect /></ProtectedRoute>
+        </Route>
 
-      {/* Protected Routes with Layout */}
-      <Route path="/dashboard">
-        <ProtectedLayout><Dashboard /></ProtectedLayout>
-      </Route>
-      <Route path="/subjects">
-        <ProtectedLayout><Subjects /></ProtectedLayout>
-      </Route>
-      <Route path="/subjects/:id">
-        <ProtectedLayout><SubjectDetail /></ProtectedLayout>
-      </Route>
-      <Route path="/lessons">
-        <ProtectedLayout><Lessons /></ProtectedLayout>
-      </Route>
-      <Route path="/lessons/:id">
-        <ProtectedLayout><LessonDetail /></ProtectedLayout>
-      </Route>
-      <Route path="/baccalaureate">
-        <ProtectedLayout><Baccalaureate /></ProtectedLayout>
-      </Route>
-      <Route path="/notifications">
-        <ProtectedLayout><Notifications /></ProtectedLayout>
-      </Route>
-      <Route path="/grade-calculator">
-        <ProtectedLayout><GradeCalculator /></ProtectedLayout>
-      </Route>
-      <Route path="/scientific-calculator">
-        <ProtectedLayout><ScientificCalculator /></ProtectedLayout>
-      </Route>
-      <Route path="/review-channels">
-        <ProtectedLayout><ReviewChannels /></ProtectedLayout>
-      </Route>
-      <Route path="/settings">
-        <ProtectedLayout><Settings /></ProtectedLayout>
-      </Route>
-      <Route path="/about">
-        <ProtectedLayout><About /></ProtectedLayout>
-      </Route>
-      <Route path="/privacy-policy">
-        <ProtectedLayout><PrivacyPolicy /></ProtectedLayout>
-      </Route>
-      <Route path="/terms">
-        <ProtectedLayout><Terms /></ProtectedLayout>
-      </Route>
+        {/* Protected Routes with Layout */}
+        <Route path="/dashboard">
+          <ProtectedLayout><Dashboard /></ProtectedLayout>
+        </Route>
+        <Route path="/subjects">
+          <ProtectedLayout><Subjects /></ProtectedLayout>
+        </Route>
+        <Route path="/subjects/:id">
+          <ProtectedLayout><SubjectDetail /></ProtectedLayout>
+        </Route>
+        <Route path="/lessons">
+          <ProtectedLayout><Lessons /></ProtectedLayout>
+        </Route>
+        <Route path="/lessons/:id">
+          <ProtectedLayout><LessonDetail /></ProtectedLayout>
+        </Route>
+        <Route path="/baccalaureate">
+          <ProtectedLayout><Baccalaureate /></ProtectedLayout>
+        </Route>
+        <Route path="/notifications">
+          <ProtectedLayout><Notifications /></ProtectedLayout>
+        </Route>
+        <Route path="/grade-calculator">
+          <ProtectedLayout><GradeCalculator /></ProtectedLayout>
+        </Route>
+        <Route path="/scientific-calculator">
+          <ProtectedLayout><ScientificCalculator /></ProtectedLayout>
+        </Route>
+        <Route path="/review-channels">
+          <ProtectedLayout><ReviewChannels /></ProtectedLayout>
+        </Route>
+        <Route path="/settings">
+          <ProtectedLayout><Settings /></ProtectedLayout>
+        </Route>
+        <Route path="/about">
+          <ProtectedLayout><About /></ProtectedLayout>
+        </Route>
+        <Route path="/privacy-policy">
+          <ProtectedLayout><PrivacyPolicy /></ProtectedLayout>
+        </Route>
+        <Route path="/terms">
+          <ProtectedLayout><Terms /></ProtectedLayout>
+        </Route>
 
-      {/* Admin Routes */}
-      <Route path="/admin">
-        <AdminRoute><AdminDashboard /></AdminRoute>
-      </Route>
-      <Route path="/admin/users">
-        <AdminRoute><AdminUsers /></AdminRoute>
-      </Route>
-      <Route path="/admin/levels">
-        <AdminRoute><AdminLevels /></AdminRoute>
-      </Route>
-      <Route path="/admin/branches">
-        <AdminRoute><AdminBranches /></AdminRoute>
-      </Route>
-      <Route path="/admin/subjects">
-        <AdminRoute><AdminSubjects /></AdminRoute>
-      </Route>
-      <Route path="/admin/lessons">
-        <AdminRoute><AdminLessons /></AdminRoute>
-      </Route>
-      <Route path="/admin/exams">
-        <AdminRoute><AdminExams /></AdminRoute>
-      </Route>
-      <Route path="/admin/tests">
-        <AdminRoute><AdminTests /></AdminRoute>
-      </Route>
-      <Route path="/admin/baccalaureates">
-        <AdminRoute><AdminBaccalaureates /></AdminRoute>
-      </Route>
-      <Route path="/admin/review-channels">
-        <AdminRoute><AdminReviewChannels /></AdminRoute>
-      </Route>
-      <Route path="/admin/announcements">
-        <AdminRoute><AdminAnnouncements /></AdminRoute>
-      </Route>
-      <Route path="/admin/notifications">
-        <AdminRoute><AdminNotifications /></AdminRoute>
-      </Route>
-      <Route path="/admin/language-settings">
-        <AdminRoute><AdminLanguageSettings /></AdminRoute>
-      </Route>
-      <Route path="/admin/backup">
-        <AdminRoute><AdminBackup /></AdminRoute>
-      </Route>
+        {/* Admin Routes */}
+        <Route path="/admin">
+          <AdminRoute><AdminDashboard /></AdminRoute>
+        </Route>
+        <Route path="/admin/users">
+          <AdminRoute><AdminUsers /></AdminRoute>
+        </Route>
+        <Route path="/admin/levels">
+          <AdminRoute><AdminLevels /></AdminRoute>
+        </Route>
+        <Route path="/admin/branches">
+          <AdminRoute><AdminBranches /></AdminRoute>
+        </Route>
+        <Route path="/admin/subjects">
+          <AdminRoute><AdminSubjects /></AdminRoute>
+        </Route>
+        <Route path="/admin/lessons">
+          <AdminRoute><AdminLessons /></AdminRoute>
+        </Route>
+        <Route path="/admin/exams">
+          <AdminRoute><AdminExams /></AdminRoute>
+        </Route>
+        <Route path="/admin/tests">
+          <AdminRoute><AdminTests /></AdminRoute>
+        </Route>
+        <Route path="/admin/baccalaureates">
+          <AdminRoute><AdminBaccalaureates /></AdminRoute>
+        </Route>
+        <Route path="/admin/review-channels">
+          <AdminRoute><AdminReviewChannels /></AdminRoute>
+        </Route>
+        <Route path="/admin/announcements">
+          <AdminRoute><AdminAnnouncements /></AdminRoute>
+        </Route>
+        <Route path="/admin/notifications">
+          <AdminRoute><AdminNotifications /></AdminRoute>
+        </Route>
+        <Route path="/admin/language-settings">
+          <AdminRoute><AdminLanguageSettings /></AdminRoute>
+        </Route>
+        <Route path="/admin/backup">
+          <AdminRoute><AdminBackup /></AdminRoute>
+        </Route>
+        <Route path="/admin/audit-logs">
+          <AdminRoute><AdminAuditLogs /></AdminRoute>
+        </Route>
 
-      <Route component={NotFound} />
-    </Switch>
+        <Route component={NotFound} />
+      </Switch>
+    </Suspense>
   );
 }
 

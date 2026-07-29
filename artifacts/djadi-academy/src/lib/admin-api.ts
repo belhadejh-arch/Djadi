@@ -141,6 +141,17 @@ export const adminApi = {
   dashboard: {
     stats: () => request<any>("GET", "/dashboard/stats"),
   },
+  // Audit Logs
+  auditLogs: {
+    list: (params?: { page?: number; limit?: number; action?: string; entity?: string }) => {
+      const q = new URLSearchParams();
+      if (params?.page) q.set("page", String(params.page));
+      if (params?.limit) q.set("limit", String(params.limit));
+      if (params?.action) q.set("action", params.action);
+      if (params?.entity) q.set("entity", params.entity);
+      return request<{ data: any[]; total: number; page: number; limit: number }>("GET", `/audit-logs?${q}`);
+    },
+  },
   // Backup
   backup: {
     list: () => request<any[]>("GET", "/backup"),

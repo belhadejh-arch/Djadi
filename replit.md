@@ -70,7 +70,28 @@ _Populate as you build — explicit user instructions worth remembering across s
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- **Audit Logs need a DB migration** — after connecting `DATABASE_URL`, run `pnpm --filter @workspace/db run push` to create the `audit_logs` table before the admin audit-log page will populate.
+- Rate limiting is **disabled in development** (`NODE_ENV !== "production"`) — it activates automatically on deployment.
+- Session cookies use `secure: true` only in production (HTTPS). Locally they work over HTTP.
+- Backup files are stored in `artifacts/api-server/backups/` — they persist across restarts but are not in the git repo (add to `.gitignore` if needed).
+
+## Security layer (Feature 22)
+
+- `helmet` — HTTP security headers on all API responses (HSTS in production)
+- `express-rate-limit` — 15 attempts / 15 min on login & register (production only)
+- `requireAuth` middleware (`middlewares/require-auth.ts`) — protects `/api/lessons/:id/content`
+- Lesson content URLs (PDF/video/link) served only to authenticated users via `/api/lessons/:id/content`
+- Session cookies: `httpOnly: true`, `secure: true` (production), `sameSite: lax`
+- RBAC: `requireAdmin` middleware for all `/api/admin/*` routes
+- Audit Logs: admin actions (CREATE/UPDATE/DELETE on users) logged to `audit_logs` table
+- Admin panel: role check (`super_admin`) on both frontend and backend
+
+## Performance layer (Feature 23)
+
+- All page components lazy-loaded with `React.lazy()` + `Suspense` skeleton fallback
+- React Query: `staleTime: 30s`, `gcTime: 5min` — avoids redundant network requests
+- Dashboard stats: single parallel aggregation query for all counts
+- API body size capped at 10 MB
 
 ## Pointers
 

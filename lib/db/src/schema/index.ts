@@ -11,3 +11,4 @@ export * from "./review-channels";
 export * from "./announcements";
 export * from "./notifications";
 export * from "./language-settings";
+export * from "./audit-logs";

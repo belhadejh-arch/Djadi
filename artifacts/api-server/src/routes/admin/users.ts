@@ -3,6 +3,7 @@ import { eq, ilike, or, count, sql } from "drizzle-orm";
 import { db, usersTable } from "@workspace/db";
 import { z } from "zod/v4";
 import { hashPassword } from "../../lib/auth";
+import { logAudit } from "../../lib/audit";
 
 const router: IRouter = Router();
 
@@ -110,6 +111,7 @@ router.post("/", async (req: Request, res: Response): Promise<void> => {
     .values({ fullName, email: email.toLowerCase(), passwordHash, grade, role })
     .returning();
 
+  await logAudit(req, "CREATE", "users", user!.id, `Created user ${email}`);
   res.status(201).json({ id: user!.id, fullName: user!.fullName, email: user!.email, role: user!.role });
 });
 
@@ -137,6 +139,7 @@ router.patch("/:id", async (req: Request, res: Response): Promise<void> => {
   const [user] = await db.update(usersTable).set(updates).where(eq(usersTable.id, id)).returning();
   if (!user) { res.status(404).json({ error: "User not found" }); return; }
 
+  await logAudit(req, "UPDATE", "users", id, `Updated user ${user.email}`);
   res.json({ id: user.id, fullName: user.fullName, email: user.email, role: user.role, isActive: user.isActive });
 });
 
@@ -146,6 +149,7 @@ router.delete("/:id", async (req: Request, res: Response): Promise<void> => {
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
 
   await db.delete(usersTable).where(eq(usersTable.id, id));
+  await logAudit(req, "DELETE", "users", id);
   res.json({ success: true });
 });
 

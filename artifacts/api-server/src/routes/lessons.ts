@@ -2,9 +2,11 @@ import { Router, type IRouter, type Request, type Response } from "express";
 import { eq } from "drizzle-orm";
 import { db, lessonsTable, subjectsTable } from "@workspace/db";
 import { GetLessonParams, ListLessonsQueryParams } from "@workspace/api-zod";
+import { requireAuth } from "../middlewares/require-auth";
 
 const router: IRouter = Router();
 
+// ── Public: list lessons (no URLs) ──────────────────────────────────────────
 router.get("/lessons", async (req: Request, res: Response): Promise<void> => {
   const query = ListLessonsQueryParams.safeParse(req.query);
   if (!query.success) {
@@ -13,56 +15,35 @@ router.get("/lessons", async (req: Request, res: Response): Promise<void> => {
   }
 
   const subjectId = query.data.subjectId;
+  const selectFields = {
+    id: lessonsTable.id,
+    title: lessonsTable.title,
+    titleAr: lessonsTable.titleAr,
+    subjectId: lessonsTable.subjectId,
+    subjectName: subjectsTable.name,
+    grade: lessonsTable.grade,
+    duration: lessonsTable.duration,
+    type: lessonsTable.type,
+    description: lessonsTable.description,
+    createdAt: lessonsTable.createdAt,
+  };
 
   const rows = subjectId
-    ? await db
-        .select({
-          id: lessonsTable.id,
-          title: lessonsTable.title,
-          titleAr: lessonsTable.titleAr,
-          subjectId: lessonsTable.subjectId,
-          subjectName: subjectsTable.name,
-          grade: lessonsTable.grade,
-          duration: lessonsTable.duration,
-          type: lessonsTable.type,
-          description: lessonsTable.description,
-          createdAt: lessonsTable.createdAt,
-        })
-        .from(lessonsTable)
+    ? await db.select(selectFields).from(lessonsTable)
         .leftJoin(subjectsTable, eq(lessonsTable.subjectId, subjectsTable.id))
         .where(eq(lessonsTable.subjectId, subjectId))
-    : await db
-        .select({
-          id: lessonsTable.id,
-          title: lessonsTable.title,
-          titleAr: lessonsTable.titleAr,
-          subjectId: lessonsTable.subjectId,
-          subjectName: subjectsTable.name,
-          grade: lessonsTable.grade,
-          duration: lessonsTable.duration,
-          type: lessonsTable.type,
-          description: lessonsTable.description,
-          createdAt: lessonsTable.createdAt,
-        })
-        .from(lessonsTable)
+    : await db.select(selectFields).from(lessonsTable)
         .leftJoin(subjectsTable, eq(lessonsTable.subjectId, subjectsTable.id));
 
-  res.json(
-    rows.map((r) => ({
-      id: r.id,
-      title: r.title,
-      titleAr: r.titleAr,
-      subjectId: r.subjectId,
-      subjectName: r.subjectName ?? null,
-      grade: r.grade,
-      duration: r.duration,
-      type: r.type,
-      description: r.description ?? null,
-      createdAt: r.createdAt,
-    }))
-  );
+  res.json(rows.map((r) => ({
+    id: r.id, title: r.title, titleAr: r.titleAr,
+    subjectId: r.subjectId, subjectName: r.subjectName ?? null,
+    grade: r.grade, duration: r.duration, type: r.type,
+    description: r.description ?? null, createdAt: r.createdAt,
+  })));
 });
 
+// ── Public: lesson metadata (no URL) ────────────────────────────────────────
 router.get("/lessons/:id", async (req: Request, res: Response): Promise<void> => {
   const params = GetLessonParams.safeParse(req.params);
   if (!params.success) {
@@ -93,16 +74,48 @@ router.get("/lessons/:id", async (req: Request, res: Response): Promise<void> =>
   }
 
   res.json({
+    id: row.id, title: row.title, titleAr: row.titleAr,
+    subjectId: row.subjectId, subjectName: row.subjectName ?? null,
+    grade: row.grade, duration: row.duration, type: row.type,
+    description: row.description ?? null, createdAt: row.createdAt,
+  });
+});
+
+// ── Protected: lesson content URL (auth required) ────────────────────────────
+router.get("/lessons/:id/content", requireAuth, async (req: Request, res: Response): Promise<void> => {
+  const params = GetLessonParams.safeParse(req.params);
+  if (!params.success) {
+    res.status(400).json({ error: params.error.message });
+    return;
+  }
+
+  const [row] = await db
+    .select({
+      id: lessonsTable.id,
+      type: lessonsTable.type,
+      pdfUrl: lessonsTable.pdfUrl,
+      videoUrl: lessonsTable.videoUrl,
+      linkUrl: lessonsTable.linkUrl,
+    })
+    .from(lessonsTable)
+    .where(eq(lessonsTable.id, params.data.id));
+
+  if (!row) {
+    res.status(404).json({ error: "Lesson not found" });
+    return;
+  }
+
+  const url = row.videoUrl ?? row.pdfUrl ?? row.linkUrl ?? null;
+
+  // Cache content URL for 5 minutes
+  res.setHeader("Cache-Control", "private, max-age=300");
+  res.json({
     id: row.id,
-    title: row.title,
-    titleAr: row.titleAr,
-    subjectId: row.subjectId,
-    subjectName: row.subjectName ?? null,
-    grade: row.grade,
-    duration: row.duration,
     type: row.type,
-    description: row.description ?? null,
-    createdAt: row.createdAt,
+    url,
+    pdfUrl: row.pdfUrl,
+    videoUrl: row.videoUrl,
+    linkUrl: row.linkUrl,
   });
 });
 

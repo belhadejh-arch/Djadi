@@ -1,18 +1,127 @@
 import { useParams, Link } from "wouter";
 import { useGetLesson } from "@workspace/api-client-react";
-import { ChevronRight, Play, FileText, Clock, Calendar, Download, AlertCircle } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import {
+  ChevronRight, Play, FileText, Clock, Calendar,
+  ExternalLink, AlertCircle, Lock,
+} from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 
+const BASE_URL = import.meta.env.BASE_URL?.replace(/\/$/, "") || "";
+
+// ── Protected content fetch ──────────────────────────────────────────────────
+function useLessonContent(id: number) {
+  return useQuery({
+    queryKey: ["lesson-content", id],
+    queryFn: async () => {
+      const res = await fetch(`${BASE_URL}/api/lessons/${id}/content`, {
+        credentials: "include",
+      });
+      if (!res.ok) return null;
+      return res.json() as Promise<{ id: number; type: string; url: string | null; pdfUrl: string | null; videoUrl: string | null; linkUrl: string | null }>;
+    },
+    staleTime: 5 * 60 * 1000,
+    enabled: !!id,
+  });
+}
+
+// ── Content renderer ─────────────────────────────────────────────────────────
+function ContentPlayer({ type, url, pdfUrl, videoUrl, linkUrl }: {
+  type: string; url: string | null;
+  pdfUrl: string | null; videoUrl: string | null; linkUrl: string | null;
+}) {
+  if (!url && !pdfUrl && !videoUrl && !linkUrl) {
+    return (
+      <div className="aspect-video bg-muted flex flex-col items-center justify-center gap-3 text-muted-foreground">
+        <Lock className="w-12 h-12 opacity-40" />
+        <p className="text-sm">المحتوى غير متاح حالياً</p>
+      </div>
+    );
+  }
+
+  if (type === "video" && videoUrl) {
+    // Try HTML5 video first, fall back to iframe (YouTube/Vimeo)
+    const isDirectVideo = /\.(mp4|webm|ogg)(\?|$)/i.test(videoUrl);
+    return isDirectVideo ? (
+      <div
+        className="aspect-video bg-black select-none"
+        onContextMenu={(e) => e.preventDefault()}
+      >
+        <video
+          src={videoUrl}
+          controls
+          controlsList="nodownload noremoteplayback"
+          disablePictureInPicture
+          className="w-full h-full"
+          style={{ pointerEvents: "auto" }}
+        />
+      </div>
+    ) : (
+      <div
+        className="aspect-video bg-black select-none"
+        onContextMenu={(e) => e.preventDefault()}
+      >
+        <iframe
+          src={videoUrl}
+          className="w-full h-full"
+          allowFullScreen
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          sandbox="allow-scripts allow-same-origin allow-presentation allow-forms"
+          title="video"
+        />
+      </div>
+    );
+  }
+
+  if (type === "pdf" && pdfUrl) {
+    return (
+      <div
+        className="w-full bg-muted select-none"
+        style={{ height: "70vh" }}
+        onContextMenu={(e) => e.preventDefault()}
+      >
+        <iframe
+          src={`${pdfUrl}#toolbar=0&navpanes=0`}
+          className="w-full h-full border-0"
+          title="document"
+          sandbox="allow-same-origin allow-scripts"
+        />
+      </div>
+    );
+  }
+
+  if (linkUrl) {
+    return (
+      <div className="aspect-video bg-gradient-to-br from-primary/10 to-primary/5 flex flex-col items-center justify-center gap-4">
+        <ExternalLink className="w-16 h-16 text-primary opacity-70" />
+        <a
+          href={linkUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-xl font-bold hover:bg-primary/90 transition-colors"
+        >
+          <ExternalLink className="w-4 h-4" />
+          فتح الرابط
+        </a>
+      </div>
+    );
+  }
+
+  return null;
+}
+
+// ── Main page ─────────────────────────────────────────────────────────────────
 export default function LessonDetail() {
   const params = useParams();
   const lessonId = Number(params.id);
 
   const { data: lesson, isLoading } = useGetLesson(lessonId, {
-    query: { enabled: !!lessonId }
+    query: { enabled: !!lessonId },
   });
+  const { data: content, isLoading: contentLoading } = useLessonContent(lessonId);
 
   if (isLoading) {
     return (
@@ -30,58 +139,54 @@ export default function LessonDetail() {
   }
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 max-w-5xl mx-auto">
+    <div className="space-y-6 animate-in fade-in duration-500 max-w-5xl mx-auto" dir="rtl">
       {/* Breadcrumb */}
-      <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
+      <nav className="flex items-center gap-2 text-sm text-muted-foreground">
         <Link href="/dashboard" className="hover:text-primary transition-colors">الرئيسية</Link>
-        <ChevronRight className="w-4 h-4" />
-        <Link href={`/subjects/${lesson.subjectId}`} className="hover:text-primary transition-colors">{lesson.subjectName}</Link>
-        <ChevronRight className="w-4 h-4" />
+        <ChevronRight className="w-4 h-4 rtl:rotate-180" />
+        <Link href={`/subjects/${lesson.subjectId}`} className="hover:text-primary transition-colors">
+          {lesson.subjectName}
+        </Link>
+        <ChevronRight className="w-4 h-4 rtl:rotate-180" />
         <span className="text-foreground font-semibold truncate">{lesson.titleAr}</span>
       </nav>
 
-      {/* Main Content Area */}
+      {/* Main card */}
       <div className="bg-card rounded-3xl overflow-hidden shadow-lg border border-border/50">
-        
-        {/* Player / Document Viewer Placeholder */}
-        <div className="aspect-video bg-black relative flex items-center justify-center group">
-          {lesson.type === 'video' ? (
-            <>
-              <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1610484826967-09c5720778c7?w=1600&q=80')] bg-cover bg-center opacity-40"></div>
-              <Button size="icon" className="w-20 h-20 rounded-full bg-primary/90 hover:bg-primary hover:scale-110 transition-all z-10">
-                <Play className="w-10 h-10 ml-2" />
-              </Button>
-              <div className="absolute bottom-4 left-4 right-4 bg-gradient-to-t from-black/80 to-transparent p-4 flex items-center justify-between rounded-xl opacity-0 group-hover:opacity-100 transition-opacity">
-                <div className="h-1 flex-1 bg-white/30 rounded-full mx-4 relative overflow-hidden">
-                  <div className="absolute top-0 left-0 h-full w-1/3 bg-primary rounded-full"></div>
-                </div>
-                <span className="text-white text-sm font-mono" dir="ltr">12:04 / {lesson.duration}:00</span>
-              </div>
-            </>
-          ) : (
-            <div className="flex flex-col items-center text-white/80 z-10">
-              <FileText className="w-24 h-24 mb-4" />
-              <Button size="lg" className="rounded-xl px-8 font-bold text-lg">
-                <Download className="mr-2 w-5 h-5" /> تحميل الملف
-              </Button>
-            </div>
-          )}
-        </div>
+        {/* Content player */}
+        {contentLoading ? (
+          <Skeleton className="aspect-video w-full rounded-none" />
+        ) : (
+          <ContentPlayer
+            type={content?.type ?? lesson.type}
+            url={content?.url ?? null}
+            pdfUrl={content?.pdfUrl ?? null}
+            videoUrl={content?.videoUrl ?? null}
+            linkUrl={content?.linkUrl ?? null}
+          />
+        )}
 
-        {/* Content Meta */}
+        {/* Meta */}
         <div className="p-6 md:p-10">
           <div className="flex flex-wrap items-center gap-3 mb-4">
-            <Badge variant={lesson.type === 'video' ? "destructive" : "default"} className="px-3 py-1 text-sm">
-              {lesson.type === 'video' ? 'فيديو' : 'مستند PDF'}
+            <Badge
+              variant={lesson.type === "video" ? "destructive" : "default"}
+              className="px-3 py-1 text-sm"
+            >
+              {lesson.type === "video" ? "فيديو" : lesson.type === "pdf" ? "مستند PDF" : "رابط"}
             </Badge>
-            <Badge variant="outline" className="px-3 py-1 text-sm bg-muted">
-              {lesson.subjectName}
-            </Badge>
+            {lesson.subjectName && (
+              <Badge variant="outline" className="px-3 py-1 text-sm bg-muted">
+                {lesson.subjectName}
+              </Badge>
+            )}
           </div>
-          
-          <h1 className="text-3xl md:text-4xl font-extrabold mb-4">{lesson.titleAr}</h1>
-          <h2 className="text-xl text-muted-foreground font-sans tracking-wide mb-6" dir="ltr">{lesson.title}</h2>
-          
+
+          <h1 className="text-3xl md:text-4xl font-extrabold mb-3">{lesson.titleAr}</h1>
+          <h2 className="text-xl text-muted-foreground font-sans tracking-wide mb-6" dir="ltr">
+            {lesson.title}
+          </h2>
+
           <div className="flex flex-wrap items-center gap-6 text-sm text-muted-foreground mb-8 pb-8 border-b border-border/50">
             <div className="flex items-center gap-2">
               <Clock className="w-5 h-5 text-primary" />
@@ -90,25 +195,31 @@ export default function LessonDetail() {
             {lesson.createdAt && (
               <div className="flex items-center gap-2">
                 <Calendar className="w-5 h-5 text-primary" />
-                <span className="font-semibold">{format(new Date(lesson.createdAt), 'dd MMMM yyyy')}</span>
+                <span className="font-semibold">
+                  {format(new Date(lesson.createdAt), "dd MMMM yyyy")}
+                </span>
               </div>
             )}
           </div>
 
-          <div className="space-y-4">
-            <h3 className="text-2xl font-bold">وصف الدرس</h3>
-            <p className="text-lg leading-relaxed text-muted-foreground">
-              {lesson.description || "هذا الدرس يغطي المفاهيم الأساسية والمتقدمة في الموضوع بطريقة مبسطة واحترافية. ننصحك بتحضير ورقة وقلم وتدوين الملاحظات لضمان الاستفادة القصوى."}
-            </p>
-          </div>
+          {lesson.description && (
+            <div className="space-y-3 select-none">
+              <h3 className="text-2xl font-bold">وصف الدرس</h3>
+              <p className="text-lg leading-relaxed text-muted-foreground">
+                {lesson.description}
+              </p>
+            </div>
+          )}
 
-          {/* Action Callout */}
-          <div className="mt-12 bg-primary/5 border border-primary/20 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-6">
+          {/* Completion callout */}
+          <div className="mt-10 bg-primary/5 border border-primary/20 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-start gap-4">
-              <AlertCircle className="w-8 h-8 text-primary shrink-0" />
+              <AlertCircle className="w-8 h-8 text-primary shrink-0 mt-0.5" />
               <div>
                 <h4 className="font-bold text-lg mb-1">هل أتممت الدرس؟</h4>
-                <p className="text-muted-foreground">حدد الدرس كمكتمل لتحديث نسبة تقدمك في المادة.</p>
+                <p className="text-muted-foreground">
+                  حدد الدرس كمكتمل لتحديث نسبة تقدمك في المادة.
+                </p>
               </div>
             </div>
             <Button size="lg" className="rounded-xl px-8 w-full md:w-auto font-bold">

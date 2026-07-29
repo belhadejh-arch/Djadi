@@ -3,15 +3,20 @@ import { eq } from "drizzle-orm";
 import { db, usersTable, sessionsTable } from "@workspace/db";
 import { RegisterBody, LoginBody } from "@workspace/api-zod";
 import { hashPassword, verifyPassword, generateSessionId, sessionExpiresAt } from "../lib/auth";
+import { authLimiter } from "../middlewares/rate-limit";
 
 const router: IRouter = Router();
 
 const SESSION_COOKIE = "djadi_session";
-const COOKIE_OPTIONS = {
-  httpOnly: true,
-  sameSite: "lax" as const,
-  maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
-};
+
+function cookieOptions() {
+  return {
+    httpOnly: true,
+    sameSite: "lax" as const,
+    secure: process.env.NODE_ENV === "production",
+    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+  };
+}
 
 function formatUser(user: typeof usersTable.$inferSelect) {
   return {
@@ -20,11 +25,12 @@ function formatUser(user: typeof usersTable.$inferSelect) {
     email: user.email,
     grade: user.grade ?? null,
     avatarUrl: user.avatarUrl ?? null,
+    role: user.role,
     createdAt: user.createdAt,
   };
 }
 
-router.post("/auth/register", async (req: Request, res: Response): Promise<void> => {
+router.post("/auth/register", authLimiter, async (req: Request, res: Response): Promise<void> => {
   const parsed = RegisterBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
@@ -62,11 +68,11 @@ router.post("/auth/register", async (req: Request, res: Response): Promise<void>
     expiresAt: sessionExpiresAt(),
   });
 
-  res.cookie(SESSION_COOKIE, sessionId, COOKIE_OPTIONS);
+  res.cookie(SESSION_COOKIE, sessionId, cookieOptions());
   res.status(201).json({ user: formatUser(user) });
 });
 
-router.post("/auth/login", async (req: Request, res: Response): Promise<void> => {
+router.post("/auth/login", authLimiter, async (req: Request, res: Response): Promise<void> => {
   const parsed = LoginBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
@@ -85,6 +91,11 @@ router.post("/auth/login", async (req: Request, res: Response): Promise<void> =>
     return;
   }
 
+  if (!user.isActive) {
+    res.status(403).json({ error: "Account is deactivated" });
+    return;
+  }
+
   const sessionId = generateSessionId();
   await db.insert(sessionsTable).values({
     id: sessionId,
@@ -92,7 +103,7 @@ router.post("/auth/login", async (req: Request, res: Response): Promise<void> =>
     expiresAt: sessionExpiresAt(),
   });
 
-  res.cookie(SESSION_COOKIE, sessionId, COOKIE_OPTIONS);
+  res.cookie(SESSION_COOKIE, sessionId, cookieOptions());
   res.json({ user: formatUser(user) });
 });
 
@@ -101,7 +112,7 @@ router.post("/auth/logout", async (req: Request, res: Response): Promise<void> =
   if (sessionId) {
     await db.delete(sessionsTable).where(eq(sessionsTable.id, sessionId));
   }
-  res.clearCookie(SESSION_COOKIE);
+  res.clearCookie(SESSION_COOKIE, { httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production" });
   res.json({ success: true });
 });
 
@@ -129,6 +140,11 @@ router.get("/auth/me", async (req: Request, res: Response): Promise<void> => {
 
   if (!user) {
     res.status(401).json({ error: "User not found" });
+    return;
+  }
+
+  if (!user.isActive) {
+    res.status(403).json({ error: "Account is deactivated" });
     return;
   }
 

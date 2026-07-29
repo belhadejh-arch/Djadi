@@ -5,7 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import {
   Users, BookOpen, GraduationCap, GitBranch, FileText,
   ScrollText, FlaskConical, Award, Youtube, Megaphone,
-  Bell, Globe, LogOut, Menu, X, LayoutDashboard, ChevronRight, Database,
+  Bell, Globe, LogOut, Menu, X, LayoutDashboard, ChevronRight, Database, ShieldCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -26,6 +26,7 @@ const navItems = [
   { href: "/admin/notifications", label: "الإشعارات", icon: Bell },
   { href: "/admin/language-settings", label: "اللغات", icon: Globe },
   { href: "/admin/backup", label: "النسخ الاحتياطي", icon: Database },
+  { href: "/admin/audit-logs", label: "سجل المراجعة", icon: ShieldCheck },
 ];
 
 export function AdminLayout({ children }: { children: ReactNode }) {
