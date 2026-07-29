@@ -10,10 +10,12 @@ const router: IRouter = Router();
 const SESSION_COOKIE = "djadi_session";
 
 function cookieOptions() {
+  const isProd = process.env.NODE_ENV === "production";
   return {
     httpOnly: true,
-    sameSite: "lax" as const,
-    secure: process.env.NODE_ENV === "production",
+    // cross-origin (Vercel ↔ Render) requires sameSite:"none" + secure:true
+    sameSite: isProd ? ("none" as const) : ("lax" as const),
+    secure: isProd,
     maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
   };
 }
