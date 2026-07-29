@@ -44,21 +44,21 @@ export default function BranchSelect() {
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.5 }}
-          className="text-center mb-10"
+          className="text-center mb-5 sm:mb-7"
         >
-          <div className="inline-flex items-center gap-2 text-sm text-muted-foreground bg-muted px-4 py-2 rounded-full mb-4">
+          <div className="inline-flex items-center gap-2 text-xs text-muted-foreground bg-muted px-3 py-1.5 rounded-full mb-2.5">
             <span>{grade ? GRADE_LABELS[grade] : ""}</span>
-            <ChevronRight className="w-4 h-4 rotate-180" />
+            <ChevronRight className="w-3.5 h-3.5 rotate-180" />
           </div>
-          <h1 className="text-3xl md:text-4xl font-bold mb-3">اختر شعبتك</h1>
-          <p className="text-muted-foreground text-lg" dir="ltr">
+          <h1 className="text-2xl sm:text-3xl font-bold mb-1.5">اختر شعبتك</h1>
+          <p className="text-muted-foreground text-sm sm:text-base" dir="ltr">
             Choisissez votre filière
           </p>
         </motion.div>
 
         {/* Branch grid */}
         <div
-          className={`grid gap-4 ${
+          className={`grid gap-3 ${
             branches.length === 2
               ? "grid-cols-1 sm:grid-cols-2 max-w-xl mx-auto"
               : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
@@ -75,29 +75,29 @@ export default function BranchSelect() {
               >
                 <button
                   onClick={() => handleSelect(branch.id)}
-                  className="w-full text-right flex flex-col rounded-2xl border-2 border-border bg-card hover:border-primary/60 hover:bg-muted/40 hover:shadow-md transition-all p-6 group"
+                  className="w-full text-right flex flex-col rounded-2xl border-2 border-border bg-card hover:border-primary/60 hover:bg-muted/40 hover:shadow-md transition-all p-4 sm:p-5 group"
                 >
                   {/* Icon */}
                   <div
-                    className="w-12 h-12 rounded-xl flex items-center justify-center text-white mb-4 shadow-sm group-hover:scale-110 transition-transform duration-200"
+                    className="w-10 h-10 rounded-xl flex items-center justify-center text-white mb-3 shadow-sm group-hover:scale-110 transition-transform duration-200"
                     style={{ backgroundColor: branch.color }}
                   >
-                    <Icon className="w-6 h-6" />
+                    <Icon className="w-5 h-5" />
                   </div>
 
                   {/* Name */}
-                  <h2 className="text-xl font-bold mb-1 group-hover:text-primary transition-colors">
+                  <h2 className="text-base sm:text-lg font-bold mb-0.5 group-hover:text-primary transition-colors">
                     {branch.nameAr}
                   </h2>
                   <p
-                    className="text-sm text-muted-foreground font-sans"
+                    className="text-xs text-muted-foreground font-sans"
                     dir="ltr"
                   >
                     {branch.nameFr}
                   </p>
 
                   {/* Subject count */}
-                  <p className="text-xs text-muted-foreground mt-3">
+                  <p className="text-xs text-muted-foreground mt-2">
                     {branch.subjects.length} مادة دراسية
                   </p>
                 </button>

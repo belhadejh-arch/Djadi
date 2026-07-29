@@ -57,7 +57,7 @@ export default function Baccalaureate() {
   );
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500" dir="rtl">
+    <div className="space-y-4 animate-in fade-in duration-500" dir="rtl">
       {/* Breadcrumb */}
       <nav className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
         <Link href="/dashboard" className="hover:text-primary transition-colors">الرئيسية</Link>
@@ -66,15 +66,15 @@ export default function Baccalaureate() {
       </nav>
 
       {/* Header */}
-      <div className="bg-gradient-to-r from-amber-500 to-orange-600 rounded-3xl p-6 md:p-8 text-white shadow-lg relative overflow-hidden">
+      <div className="bg-gradient-to-r from-amber-500 to-orange-600 rounded-2xl p-4 md:p-5 text-white shadow-lg relative overflow-hidden">
         <div className="absolute inset-0 bg-black/10" />
-        <div className="relative z-10 flex items-center gap-4">
-          <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center">
-            <GraduationCap className="w-9 h-9" />
+        <div className="relative z-10 flex items-center gap-3">
+          <div className="w-11 h-11 bg-white/20 rounded-xl flex items-center justify-center shrink-0">
+            <GraduationCap className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-2xl md:text-3xl font-extrabold">البكالوريات السابقة</h1>
-            <p className="text-white/80 mt-1">اختر السنة والشعبة والمادة لفتح الامتحان</p>
+            <h1 className="text-lg md:text-xl font-extrabold">البكالوريات السابقة</h1>
+            <p className="text-white/80 text-xs sm:text-sm mt-0.5">اختر السنة والشعبة والمادة لفتح الامتحان</p>
           </div>
         </div>
       </div>
@@ -124,13 +124,13 @@ export default function Baccalaureate() {
           {/* Step 1: Year */}
           {step === "year" && (
             <div>
-              <h2 className="text-xl font-bold mb-4">اختر السنة</h2>
-              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
+              <h2 className="text-base font-bold mb-3">اختر السنة</h2>
+              <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-7 gap-2">
                 {BAC_YEARS.map((year) => (
                   <button
                     key={year}
                     onClick={() => handleYearSelect(year)}
-                    className="bg-card border border-border rounded-2xl p-4 text-center font-bold text-lg hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all shadow-sm hover:shadow-md"
+                    className="bg-card border border-border rounded-xl p-2.5 text-center font-bold text-sm hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all shadow-sm hover:shadow-md"
                   >
                     {year}
                   </button>
@@ -142,18 +142,18 @@ export default function Baccalaureate() {
           {/* Step 2: Branch */}
           {step === "branch" && (
             <div>
-              <h2 className="text-xl font-bold mb-4">
+              <h2 className="text-base font-bold mb-3">
                 بكالوريا {selectedYear} — اختر الشعبة
               </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
                 {BAC_BRANCHES.map((branch) => (
                   <button
                     key={branch.id}
                     onClick={() => handleBranchSelect(branch.id)}
-                    className="bg-card border border-border rounded-2xl p-5 text-center font-bold text-lg hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all shadow-sm hover:shadow-md group"
+                    className="bg-card border border-border rounded-xl p-3.5 text-center font-semibold text-sm hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all shadow-sm hover:shadow-md group"
                   >
-                    <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:bg-white/20">
-                      <GraduationCap className="w-6 h-6 text-primary group-hover:text-white" />
+                    <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-2 group-hover:bg-white/20">
+                      <GraduationCap className="w-5 h-5 text-primary group-hover:text-white" />
                     </div>
                     {branch.nameAr}
                   </button>
@@ -165,18 +165,18 @@ export default function Baccalaureate() {
           {/* Step 3: Subject */}
           {step === "subject" && selectedBranch && (
             <div>
-              <h2 className="text-xl font-bold mb-4">
+              <h2 className="text-base font-bold mb-3">
                 بكالوريا {selectedYear} — {selectedBranch.nameAr} — اختر المادة
               </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
                 {selectedBranch.subjects.map((subject) => (
                   <button
                     key={subject.id}
                     onClick={() => handleSubjectSelect(subject.id)}
-                    className="bg-card border border-border rounded-2xl p-5 text-right font-semibold text-base hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all shadow-sm hover:shadow-md flex items-center gap-3"
+                    className="bg-card border border-border rounded-xl p-3.5 text-right font-semibold text-sm hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all shadow-sm hover:shadow-md flex items-center gap-2.5"
                   >
-                    <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center shrink-0 group-hover:bg-white/20">
-                      <BookOpen className="w-5 h-5 text-primary" />
+                    <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center shrink-0 group-hover:bg-white/20">
+                      <BookOpen className="w-4 h-4 text-primary" />
                     </div>
                     {subject.nameAr}
                   </button>

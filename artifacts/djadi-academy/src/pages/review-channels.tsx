@@ -124,7 +124,7 @@ const CHANNELS: Channel[] = [
 function Avatar({ ch }: { ch: Channel }) {
   return (
     <div
-      className="w-16 h-16 rounded-2xl flex items-center justify-center text-xl font-extrabold shrink-0 shadow-sm"
+      className="w-12 h-12 rounded-xl flex items-center justify-center text-base font-extrabold shrink-0 shadow-sm"
       style={{ backgroundColor: ch.avatarBg, color: ch.subjectColor }}
     >
       {ch.avatarInitials}
@@ -315,7 +315,7 @@ export default function ReviewChannels() {
       </div>
 
       {/* Channel Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {CHANNELS.map((ch, i) => (
           <motion.button
             key={ch.id}
@@ -323,28 +323,28 @@ export default function ReviewChannels() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.06 }}
             onClick={() => setSelectedChannel(ch)}
-            className="bg-card border border-border rounded-2xl p-5 text-right hover:shadow-lg hover:border-primary/30 transition-all group flex flex-col gap-4"
+            className="bg-card border border-border rounded-2xl p-4 text-right hover:shadow-lg hover:border-primary/30 transition-all group flex flex-col gap-3"
           >
             {/* Top: avatar + meta */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2.5">
               <Avatar ch={ch} />
               <div className="flex-1 min-w-0">
-                <p className="font-extrabold text-base leading-tight group-hover:text-primary transition-colors">
+                <p className="font-extrabold text-sm leading-tight group-hover:text-primary transition-colors">
                   {ch.name}
                 </p>
-                <p className="text-sm text-muted-foreground mt-0.5 truncate">{ch.teacher}</p>
+                <p className="text-xs text-muted-foreground mt-0.5 truncate">{ch.teacher}</p>
               </div>
             </div>
 
             {/* Subject badge + lesson count */}
             <div className="flex items-center justify-between">
               <span
-                className="text-xs font-bold px-2.5 py-1 rounded-full"
+                className="text-[11px] font-bold px-2 py-0.5 rounded-full"
                 style={{ backgroundColor: ch.subjectColor + "20", color: ch.subjectColor }}
               >
                 {ch.subject}
               </span>
-              <div className="flex items-center gap-3 text-xs text-muted-foreground">
+              <div className="flex items-center gap-2.5 text-xs text-muted-foreground">
                 <span className="flex items-center gap-1">
                   <BookOpen className="w-3 h-3" />
                   {ch.lessons.length} دروس
@@ -357,7 +357,7 @@ export default function ReviewChannels() {
             </div>
 
             {/* Lesson previews */}
-            <div className="space-y-1.5 border-t border-border pt-3">
+            <div className="space-y-1 border-t border-border pt-2.5">
               {ch.lessons.slice(0, 2).map((l, li) => (
                 <div key={l.id} className="flex items-center gap-2">
                   <span

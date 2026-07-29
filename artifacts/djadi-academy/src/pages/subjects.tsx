@@ -82,7 +82,7 @@ export default function Subjects() {
       </div>
 
       {/* Subjects grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 md:gap-4">
+      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2.5 sm:gap-3">
         {subjects.map((subject, index) => {
           const Icon = subject.icon;
           const isThirdLangPicker =
@@ -98,7 +98,7 @@ export default function Subjects() {
               <Link href={subject.linkTo}>
                 <div
                   className={`flex flex-col items-center justify-center rounded-2xl border-2 bg-card transition-all cursor-pointer group
-                    h-32 md:h-36 p-3 text-center
+                    h-24 sm:h-28 md:h-28 p-2 sm:p-3 text-center
                     ${
                       isThirdLangPicker
                         ? "border-dashed border-pink-300 dark:border-pink-800 hover:border-pink-500"
@@ -108,14 +108,14 @@ export default function Subjects() {
                 >
                   {/* Icon circle */}
                   <div
-                    className="w-11 h-11 md:w-12 md:h-12 rounded-xl flex items-center justify-center text-white mb-2.5 shadow-sm group-hover:scale-110 transition-transform duration-200"
+                    className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-white mb-1.5 sm:mb-2 shadow-sm group-hover:scale-110 transition-transform duration-200"
                     style={{ backgroundColor: subject.color }}
                   >
-                    <Icon className="w-5 h-5 md:w-6 md:h-6" />
+                    <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
                   </div>
 
                   {/* Name */}
-                  <p className="text-xs md:text-sm font-bold leading-tight text-center group-hover:text-primary transition-colors line-clamp-2">
+                  <p className="text-[11px] sm:text-xs font-bold leading-tight text-center group-hover:text-primary transition-colors line-clamp-2">
                     {subject.nameAr}
                   </p>
 
