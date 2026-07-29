@@ -3,8 +3,7 @@ import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { useGetMe } from "@workspace/api-client-react";
 import logoUrl from "@assets/IMG_0796_1785328682791.png";
-// @ts-ignore – video asset import
-import loadingVideoUrl from "@assets/‎⁨رحلة_عبر_السحاب_(تأثير_الفيديو_بالذكاء_الاصطناعي)_20260729__1785333259594.mp4";
+const loadingVideoUrl = `${import.meta.env.BASE_URL}loading-video.mp4`;
 
 const MIN_DISPLAY_MS = 3000; // show for at least 3 s
 
