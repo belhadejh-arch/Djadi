@@ -14,9 +14,11 @@
 | الإعداد | القيمة |
 |---|---|
 | Root Directory | *(اتركه فارغًا — جذر المستودع)* |
-| Build Command | `corepack enable && pnpm install --frozen-lockfile && pnpm --filter @workspace/api-server run build` |
+| Build Command | `npm install -g pnpm@10 && pnpm install --frozen-lockfile && pnpm --filter @workspace/api-server run build` |
 | Start Command | `pnpm --filter @workspace/api-server run start` |
-| Runtime | Node 20+ |
+| Runtime | Node 20 (أضف متغير بيئة `NODE_VERSION` = `20.20.0` على Render) |
+
+> لا تستخدم `corepack enable` على Render — نظام الملفات لديهم للقراءة فقط في `/usr/bin` وسيفشل البناء بخطأ `EROFS`.
 
 ### متغيرات البيئة على Render
 
@@ -47,7 +49,7 @@ DATABASE_URL="<رابط Neon>" pnpm --filter @workspace/db run push
 | Framework Preset | Vite |
 | Build Command | `pnpm --filter @workspace/djadi-academy run build` |
 | Output Directory | `dist` |
-| Install Command | `cd ../.. && corepack enable && pnpm install --frozen-lockfile` |
+| Install Command | `cd ../.. && npm install -g pnpm@10 && pnpm install --frozen-lockfile` |
 
 ### ربط الواجهة بالـ Backend
 
