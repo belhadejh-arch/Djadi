@@ -38,6 +38,9 @@ app.use(
 );
 
 // ─── Core middleware ─────────────────────────────────────────────────────────
+// Required when running behind a reverse proxy (Render, Replit) so secure
+// cookies and rate limiting see the real client IP/protocol.
+app.set("trust proxy", 1);
 app.use(cors({ origin: true, credentials: true }));
 app.use(cookieParser());
 app.use(express.json({ limit: "10mb" }));
