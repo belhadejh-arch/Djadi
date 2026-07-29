@@ -208,8 +208,7 @@ export default function Baccalaureate() {
                   <iframe
                     src={examUrl}
                     title="exam"
-                    className="w-full"
-                    style={{ height: "70vh" }}
+                    className="w-full h-[60vh] sm:h-[72vh]"
                     allowFullScreen
                   />
                 </div>

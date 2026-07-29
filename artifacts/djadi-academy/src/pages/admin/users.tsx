@@ -56,10 +56,10 @@ export default function AdminUsers() {
 
   return (
     <div className="space-y-4" dir="rtl">
-      <div className="flex items-center gap-3">
-        <h1 className="text-xl font-bold flex-1">إدارة المستخدمين</h1>
+      <div className="flex flex-wrap items-center gap-3">
+        <h1 className="text-xl font-bold flex-1 min-w-[120px]">إدارة المستخدمين</h1>
         <Input
-          className="max-w-xs text-sm"
+          className="w-full sm:max-w-xs text-sm"
           placeholder="بحث بالاسم أو البريد..."
           value={search}
           onChange={(e) => { setSearch(e.target.value); setPage(1); }}

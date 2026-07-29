@@ -21,19 +21,19 @@ export default function Dashboard() {
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       {/* Welcome Hero */}
-      <section className="bg-gradient-to-r from-primary to-emerald-800 rounded-3xl p-8 md:p-12 text-primary-foreground shadow-xl relative overflow-hidden">
+      <section className="bg-gradient-to-r from-primary to-emerald-800 rounded-3xl p-5 sm:p-8 md:p-12 text-primary-foreground shadow-xl relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
         
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-6">
           <div className="space-y-2">
-            <h1 className="text-3xl md:text-5xl font-extrabold flex items-center gap-3">
+            <h1 className="text-2xl sm:text-3xl md:text-5xl font-extrabold flex items-center gap-3 flex-wrap">
               {getGreeting()}، {user?.fullName?.split(" ")[0]} 👋
             </h1>
-            <p className="text-primary-foreground/80 text-lg">
+            <p className="text-primary-foreground/80 text-base md:text-lg">
               مستعد لمواصلة رحلتك التعليمية اليوم؟
             </p>
           </div>
-          <div className="bg-white/10 backdrop-blur-md border border-white/20 p-4 rounded-2xl flex items-center gap-4 text-left" dir="ltr">
+          <div className="bg-white/10 backdrop-blur-md border border-white/20 p-3 sm:p-4 rounded-2xl flex items-center gap-3 sm:gap-4 text-left w-full sm:w-auto" dir="ltr">
             <div>
               <p className="text-xs text-primary-foreground/70 font-semibold uppercase tracking-wider">Niveau</p>
               <p className="font-bold text-lg">{user?.grade === "troisieme" ? "3ème Année (BAC)" : user?.grade === "deuxieme" ? "2ème Année" : "1ère Année"}</p>

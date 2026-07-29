@@ -91,11 +91,11 @@ export default function Notifications() {
             >
               <NotificationIcon icon={notif.icon} />
               <div className="flex-1 min-w-0">
-                <div className="flex items-start justify-between gap-2 mb-1">
-                  <div className="flex items-center gap-2 flex-wrap">
+                <div className="flex flex-wrap items-start justify-between gap-x-2 gap-y-1 mb-1">
+                  <div className="flex items-center gap-2 flex-wrap min-w-0">
                     <h3 className="font-bold text-base leading-tight">{notif.title}</h3>
                     {!notif.read && (
-                      <Badge className="text-xs px-2 py-0 bg-primary text-primary-foreground">جديد</Badge>
+                      <Badge className="text-xs px-2 py-0 bg-primary text-primary-foreground shrink-0">جديد</Badge>
                     )}
                   </div>
                   <div className="text-xs text-muted-foreground shrink-0 text-left" dir="ltr">

@@ -79,8 +79,7 @@ function ContentPlayer({ type, url, pdfUrl, videoUrl, linkUrl }: {
   if (type === "pdf" && pdfUrl) {
     return (
       <div
-        className="w-full bg-muted select-none"
-        style={{ height: "70vh" }}
+        className="w-full bg-muted select-none h-[60vh] sm:h-[72vh]"
         onContextMenu={(e) => e.preventDefault()}
       >
         <iframe

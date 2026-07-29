@@ -127,25 +127,25 @@ export default function SubjectDetail() {
 
       {/* Hero Header */}
       <div
-        className="rounded-3xl p-8 md:p-10 text-white shadow-lg relative overflow-hidden flex flex-col md:flex-row items-center gap-8"
+        className="rounded-3xl p-5 sm:p-8 md:p-10 text-white shadow-lg relative overflow-hidden flex flex-col md:flex-row items-center gap-5 sm:gap-8"
         style={{ backgroundColor: subject.color }}
       >
         <div className="absolute inset-0 bg-black/10 mix-blend-overlay" />
         <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-b from-white/10 to-transparent" />
 
-        <div className="w-24 h-24 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center shrink-0 z-10 border border-white/30 shadow-inner">
-          <SubjectIcon className="w-12 h-12" />
+        <div className="w-16 h-16 sm:w-24 sm:h-24 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center shrink-0 z-10 border border-white/30 shadow-inner">
+          <SubjectIcon className="w-8 h-8 sm:w-12 sm:h-12" />
         </div>
 
         <div className="relative z-10 text-center md:text-right flex-1">
           <Badge
             variant="outline"
-            className="text-white border-white/40 bg-white/10 mb-4"
+            className="text-white border-white/40 bg-white/10 mb-3 md:mb-4"
             dir="ltr"
           >
             {subject.nameFr}
           </Badge>
-          <h1 className="text-4xl md:text-5xl font-extrabold mb-4">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold mb-3 md:mb-4">
             {subject.nameAr}
           </h1>
           <p className="text-white/90 text-lg max-w-2xl">

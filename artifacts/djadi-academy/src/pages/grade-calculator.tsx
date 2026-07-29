@@ -283,9 +283,9 @@ export default function GradeCalculator() {
           {/* Subjects Table */}
           <div className="bg-card rounded-xl border border-border overflow-hidden shadow-sm">
             {/* Header */}
-            <div className="grid grid-cols-[1fr_auto_112px] gap-x-2 px-3 py-2 bg-muted border-b text-xs font-bold text-muted-foreground">
+            <div className="grid grid-cols-[1fr_auto_88px] sm:grid-cols-[1fr_auto_112px] gap-x-2 px-3 py-2 bg-muted border-b text-xs font-bold text-muted-foreground">
               <span>المادة</span>
-              <span className="text-center w-24">المعامل</span>
+              <span className="text-center w-20 sm:w-24">المعامل</span>
               <span className="text-center">العلامة / 20</span>
             </div>
 
@@ -294,13 +294,13 @@ export default function GradeCalculator() {
               {rows.map((row, i) => (
                 <div
                   key={row.nameAr}
-                  className="grid grid-cols-[1fr_auto_112px] gap-x-2 px-3 py-2 items-center"
+                  className="grid grid-cols-[1fr_auto_88px] sm:grid-cols-[1fr_auto_112px] gap-x-2 px-3 py-2 items-center"
                 >
                   {/* Subject name */}
                   <span className="text-sm font-medium leading-tight">{row.nameAr}</span>
 
                   {/* Coefficient +/- */}
-                  <div className="flex items-center gap-1 w-24 justify-center">
+                  <div className="flex items-center gap-1 w-20 sm:w-24 justify-center">
                     <button
                       onClick={() => setCoeff(i, -1)}
                       className="w-7 h-7 rounded-lg bg-muted hover:bg-red-100 dark:hover:bg-red-900/30 text-muted-foreground hover:text-red-600 font-bold text-base transition-colors flex items-center justify-center leading-none"

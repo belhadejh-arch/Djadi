@@ -207,7 +207,7 @@ export default function ScientificCalculator() {
   }, [expr, shift, deg, ans, openParens]);
 
   return (
-    <div className="flex flex-col h-[calc(100dvh-8rem)] max-h-[780px] animate-in fade-in duration-300" dir="ltr">
+    <div className="flex flex-col h-[calc(100dvh-11rem)] md:h-[calc(100dvh-6rem)] max-h-[780px] min-h-[380px] animate-in fade-in duration-300" dir="ltr">
 
       {/* ── Display ────────────────────────────────────────────────── */}
       <div className="bg-card border border-border rounded-2xl px-4 py-3 mb-3 shadow-sm flex-shrink-0 min-h-[110px] flex flex-col justify-between">

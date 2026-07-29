@@ -45,8 +45,8 @@ export default function AdminLanguageSettings() {
 
   return (
     <div className="space-y-4" dir="rtl">
-      <div className="flex items-center gap-3">
-        <h1 className="text-xl font-bold flex-1">إدارة اللغات</h1>
+      <div className="flex flex-wrap items-center gap-3">
+        <h1 className="text-xl font-bold flex-1 min-w-[120px]">إدارة اللغات</h1>
         <Select value={filterLang} onValueChange={setFilterLang}>
           <SelectTrigger className="w-36"><SelectValue placeholder="كل اللغات" /></SelectTrigger>
           <SelectContent>
