@@ -29,6 +29,9 @@ import GradeCalculator from '@/pages/grade-calculator';
 import ScientificCalculator from '@/pages/scientific-calculator';
 import ReviewChannels from '@/pages/review-channels';
 import Settings from '@/pages/settings';
+import About from '@/pages/about';
+import PrivacyPolicy from '@/pages/privacy-policy';
+import Terms from '@/pages/terms';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -97,6 +100,15 @@ function Router() {
       </Route>
       <Route path="/settings">
         <ProtectedLayout><Settings /></ProtectedLayout>
+      </Route>
+      <Route path="/about">
+        <ProtectedLayout><About /></ProtectedLayout>
+      </Route>
+      <Route path="/privacy-policy">
+        <ProtectedLayout><PrivacyPolicy /></ProtectedLayout>
+      </Route>
+      <Route path="/terms">
+        <ProtectedLayout><Terms /></ProtectedLayout>
       </Route>
 
       <Route component={NotFound} />
