@@ -12,8 +12,11 @@ export const lessonsTable = pgTable("lessons", {
     .references(() => subjectsTable.id, { onDelete: "cascade" }),
   grade: text("grade").notNull(),
   duration: integer("duration").notNull().default(30), // minutes
-  type: text("type").notNull().default("pdf"), // video | pdf | quiz
+  type: text("type").notNull().default("pdf"), // video | pdf | link
   description: text("description"),
+  pdfUrl: text("pdf_url"),
+  videoUrl: text("video_url"),
+  linkUrl: text("link_url"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

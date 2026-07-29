@@ -33,6 +33,22 @@ import About from '@/pages/about';
 import PrivacyPolicy from '@/pages/privacy-policy';
 import Terms from '@/pages/terms';
 
+// Admin Pages
+import { AdminRoute } from '@/components/admin-route';
+import AdminDashboard from '@/pages/admin/index';
+import AdminUsers from '@/pages/admin/users';
+import AdminLevels from '@/pages/admin/levels';
+import AdminBranches from '@/pages/admin/branches';
+import AdminSubjects from '@/pages/admin/subjects';
+import AdminLessons from '@/pages/admin/lessons';
+import AdminExams from '@/pages/admin/exams';
+import AdminTests from '@/pages/admin/tests';
+import AdminBaccalaureates from '@/pages/admin/baccalaureates';
+import AdminReviewChannels from '@/pages/admin/review-channels';
+import AdminAnnouncements from '@/pages/admin/announcements';
+import AdminNotifications from '@/pages/admin/notifications';
+import AdminLanguageSettings from '@/pages/admin/language-settings';
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -109,6 +125,47 @@ function Router() {
       </Route>
       <Route path="/terms">
         <ProtectedLayout><Terms /></ProtectedLayout>
+      </Route>
+
+      {/* Admin Routes */}
+      <Route path="/admin">
+        <AdminRoute><AdminDashboard /></AdminRoute>
+      </Route>
+      <Route path="/admin/users">
+        <AdminRoute><AdminUsers /></AdminRoute>
+      </Route>
+      <Route path="/admin/levels">
+        <AdminRoute><AdminLevels /></AdminRoute>
+      </Route>
+      <Route path="/admin/branches">
+        <AdminRoute><AdminBranches /></AdminRoute>
+      </Route>
+      <Route path="/admin/subjects">
+        <AdminRoute><AdminSubjects /></AdminRoute>
+      </Route>
+      <Route path="/admin/lessons">
+        <AdminRoute><AdminLessons /></AdminRoute>
+      </Route>
+      <Route path="/admin/exams">
+        <AdminRoute><AdminExams /></AdminRoute>
+      </Route>
+      <Route path="/admin/tests">
+        <AdminRoute><AdminTests /></AdminRoute>
+      </Route>
+      <Route path="/admin/baccalaureates">
+        <AdminRoute><AdminBaccalaureates /></AdminRoute>
+      </Route>
+      <Route path="/admin/review-channels">
+        <AdminRoute><AdminReviewChannels /></AdminRoute>
+      </Route>
+      <Route path="/admin/announcements">
+        <AdminRoute><AdminAnnouncements /></AdminRoute>
+      </Route>
+      <Route path="/admin/notifications">
+        <AdminRoute><AdminNotifications /></AdminRoute>
+      </Route>
+      <Route path="/admin/language-settings">
+        <AdminRoute><AdminLanguageSettings /></AdminRoute>
       </Route>
 
       <Route component={NotFound} />

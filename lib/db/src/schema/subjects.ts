@@ -8,6 +8,7 @@ export const subjectsTable = pgTable("subjects", {
   nameAr: text("name_ar").notNull(),
   nameFr: text("name_fr").notNull(),
   grade: text("grade").notNull(), // premiere | deuxieme | troisieme
+  branchId: integer("branch_id"), // nullable — null means all branches
   color: text("color").notNull(),
   icon: text("icon").notNull(),
   description: text("description"),
