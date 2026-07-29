@@ -4,6 +4,8 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import NotFound from '@/pages/not-found';
 import { Route, Switch, Router as WouterRouter } from 'wouter';
 import { ThemeProvider } from '@/components/theme-provider';
+import { LanguageProvider } from '@/lib/language-context';
+import { NotificationsProvider } from '@/lib/notifications-context';
 
 // Layout & Auth
 import { AppLayout } from '@/components/layout/app-layout';
@@ -21,6 +23,12 @@ import Subjects from '@/pages/subjects';
 import SubjectDetail from '@/pages/subject-detail';
 import Lessons from '@/pages/lessons';
 import LessonDetail from '@/pages/lesson-detail';
+import Baccalaureate from '@/pages/baccalaureate';
+import Notifications from '@/pages/notifications';
+import GradeCalculator from '@/pages/grade-calculator';
+import ScientificCalculator from '@/pages/scientific-calculator';
+import ReviewChannels from '@/pages/review-channels';
+import Settings from '@/pages/settings';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -31,70 +39,64 @@ const queryClient = new QueryClient({
   },
 });
 
+function ProtectedLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <ProtectedRoute>
+      <AppLayout>{children}</AppLayout>
+    </ProtectedRoute>
+  );
+}
+
 function Router() {
   return (
     <Switch>
       <Route path="/" component={Splash} />
       <Route path="/login" component={Login} />
       <Route path="/register" component={Register} />
-      
+
       <Route path="/grade-select">
-        <ProtectedRoute>
-          <GradeSelect />
-        </ProtectedRoute>
+        <ProtectedRoute><GradeSelect /></ProtectedRoute>
       </Route>
-
       <Route path="/branch-select">
-        <ProtectedRoute>
-          <BranchSelect />
-        </ProtectedRoute>
+        <ProtectedRoute><BranchSelect /></ProtectedRoute>
       </Route>
-
       <Route path="/language-select">
-        <ProtectedRoute>
-          <LanguageSelect />
-        </ProtectedRoute>
+        <ProtectedRoute><LanguageSelect /></ProtectedRoute>
       </Route>
 
       {/* Protected Routes with Layout */}
       <Route path="/dashboard">
-        <ProtectedRoute>
-          <AppLayout>
-            <Dashboard />
-          </AppLayout>
-        </ProtectedRoute>
+        <ProtectedLayout><Dashboard /></ProtectedLayout>
       </Route>
-      
       <Route path="/subjects">
-        <ProtectedRoute>
-          <AppLayout>
-            <Subjects />
-          </AppLayout>
-        </ProtectedRoute>
+        <ProtectedLayout><Subjects /></ProtectedLayout>
       </Route>
-      
       <Route path="/subjects/:id">
-        <ProtectedRoute>
-          <AppLayout>
-            <SubjectDetail />
-          </AppLayout>
-        </ProtectedRoute>
+        <ProtectedLayout><SubjectDetail /></ProtectedLayout>
       </Route>
-
       <Route path="/lessons">
-        <ProtectedRoute>
-          <AppLayout>
-            <Lessons />
-          </AppLayout>
-        </ProtectedRoute>
+        <ProtectedLayout><Lessons /></ProtectedLayout>
       </Route>
-
       <Route path="/lessons/:id">
-        <ProtectedRoute>
-          <AppLayout>
-            <LessonDetail />
-          </AppLayout>
-        </ProtectedRoute>
+        <ProtectedLayout><LessonDetail /></ProtectedLayout>
+      </Route>
+      <Route path="/baccalaureate">
+        <ProtectedLayout><Baccalaureate /></ProtectedLayout>
+      </Route>
+      <Route path="/notifications">
+        <ProtectedLayout><Notifications /></ProtectedLayout>
+      </Route>
+      <Route path="/grade-calculator">
+        <ProtectedLayout><GradeCalculator /></ProtectedLayout>
+      </Route>
+      <Route path="/scientific-calculator">
+        <ProtectedLayout><ScientificCalculator /></ProtectedLayout>
+      </Route>
+      <Route path="/review-channels">
+        <ProtectedLayout><ReviewChannels /></ProtectedLayout>
+      </Route>
+      <Route path="/settings">
+        <ProtectedLayout><Settings /></ProtectedLayout>
       </Route>
 
       <Route component={NotFound} />
@@ -105,14 +107,18 @@ function Router() {
 function App() {
   return (
     <ThemeProvider defaultTheme="light" storageKey="djadi-theme">
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, '')}>
-            <Router />
-          </WouterRouter>
-          <Toaster />
-        </TooltipProvider>
-      </QueryClientProvider>
+      <LanguageProvider>
+        <NotificationsProvider>
+          <QueryClientProvider client={queryClient}>
+            <TooltipProvider>
+              <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, '')}>
+                <Router />
+              </WouterRouter>
+              <Toaster />
+            </TooltipProvider>
+          </QueryClientProvider>
+        </NotificationsProvider>
+      </LanguageProvider>
     </ThemeProvider>
   );
 }
