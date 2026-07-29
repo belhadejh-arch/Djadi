@@ -41,10 +41,10 @@ export default function Splash() {
     }
   };
 
-  // Fallback: navigate after FALLBACK_TIMEOUT_MS regardless
+  // Fallback: navigate after FALLBACK_TIMEOUT_MS regardless of loading state
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (!isLoading) navigate();
+      navigate();
     }, FALLBACK_TIMEOUT_MS);
     return () => clearTimeout(timer);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
