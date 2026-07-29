@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useLocation } from "wouter";
 import { useGetMe } from "@workspace/api-client-react";
 import { Loader2 } from "lucide-react";
+import { getBranchIdSync } from "@/lib/use-branch";
 
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const [location, setLocation] = useLocation();
@@ -13,6 +14,12 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
         setLocation("/login");
       } else if (!user.grade && location !== "/grade-select") {
         setLocation("/grade-select");
+      } else if (
+        user.grade &&
+        !getBranchIdSync(user.id, user.grade) &&
+        location !== "/branch-select"
+      ) {
+        setLocation("/branch-select");
       }
     }
   }, [user, isLoading, isError, location, setLocation]);

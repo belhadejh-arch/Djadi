@@ -11,6 +11,27 @@ env = { "CI" = "true" }
 [workflows]
 runButton = "Project"
 
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Djadi Academy"
+
+[[workflows.workflow]]
+name = "Djadi Academy"
+author = "agent"
+
+[workflows.workflow.metadata]
+outputType = "webview"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "PORT=20556 BASE_PATH=/ pnpm --filter @workspace/djadi-academy run dev"
+waitForPort = 20556
+
 [agent]
 stack = "PNPM_WORKSPACE"
 expertMode = true

@@ -14,6 +14,8 @@ import Splash from '@/pages/splash';
 import Login from '@/pages/login';
 import Register from '@/pages/register';
 import GradeSelect from '@/pages/grade-select';
+import BranchSelect from '@/pages/branch-select';
+import LanguageSelect from '@/pages/language-select';
 import Dashboard from '@/pages/dashboard';
 import Subjects from '@/pages/subjects';
 import SubjectDetail from '@/pages/subject-detail';
@@ -39,6 +41,18 @@ function Router() {
       <Route path="/grade-select">
         <ProtectedRoute>
           <GradeSelect />
+        </ProtectedRoute>
+      </Route>
+
+      <Route path="/branch-select">
+        <ProtectedRoute>
+          <BranchSelect />
+        </ProtectedRoute>
+      </Route>
+
+      <Route path="/language-select">
+        <ProtectedRoute>
+          <LanguageSelect />
         </ProtectedRoute>
       </Route>
 
