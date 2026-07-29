@@ -20,6 +20,7 @@ const navItems = [
   { href: "/admin/lessons", label: "الدروس", icon: FileText },
   { href: "/admin/exams", label: "الفروض", icon: ScrollText },
   { href: "/admin/tests", label: "الاختبارات", icon: FlaskConical },
+  { href: "/admin/homework", label: "الواجبات المنزلية", icon: BookOpen },
   { href: "/admin/baccalaureates", label: "البكالوريات", icon: Award },
   { href: "/admin/review-channels", label: "قنوات المراجعة", icon: Youtube },
   { href: "/admin/announcements", label: "الإعلانات", icon: Megaphone },
@@ -53,9 +54,9 @@ export function AdminLayout({ children }: { children: ReactNode }) {
     <aside className="flex flex-col h-full bg-card border-l w-64 shrink-0">
       {/* Logo */}
       <div className="flex items-center gap-3 p-4 border-b">
-        <img src={logoUrl} alt="Djadi Academy" className="w-9 h-9 object-contain" />
+        <img src={logoUrl} alt="منصة جعدي" className="w-9 h-9 object-contain" />
         <div>
-          <p className="font-bold text-sm text-primary">أكاديمية جادي</p>
+          <p className="font-bold text-sm text-primary">منصة جعدي</p>
           <p className="text-xs text-muted-foreground">لوحة الإدارة</p>
         </div>
       </div>

@@ -55,10 +55,10 @@ export default function About() {
       {/* App identity */}
       <div className="bg-gradient-to-br from-primary to-emerald-700 rounded-3xl p-8 text-white text-center shadow-lg">
         <div className="w-20 h-20 bg-white rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-md">
-          <img src={logoUrl} alt="Djadi Academy" className="w-14 h-14 object-contain" />
+          <img src={logoUrl} alt="منصة جعدي" className="w-14 h-14 object-contain" />
         </div>
-        <h1 className="text-2xl font-extrabold">أكاديمية جادي</h1>
-        <p className="text-white/70 text-sm mt-1" dir="ltr">Djadi Academy</p>
+        <h1 className="text-2xl font-extrabold">منصة جعدي</h1>
+        <p className="text-white/70 text-sm mt-1" dir="ltr">Mounassata Djadi</p>
         <span className="inline-block mt-3 bg-white/20 text-white text-xs font-semibold px-3 py-1 rounded-full">
           الإصدار 1.0.0
         </span>
@@ -122,7 +122,7 @@ export default function About() {
 
       {/* Footer */}
       <p className="text-center text-xs text-muted-foreground pb-2">
-        © {new Date().getFullYear()} أكاديمية جادي — جميع الحقوق محفوظة
+        © {new Date().getFullYear()} منصة جعدي — جميع الحقوق محفوظة
       </p>
     </div>
   );

@@ -9,6 +9,7 @@ import {
   lessonsTable,
   examsTable,
   testsTable,
+  homeworkTable,
   baccalaureatePapersTable,
   reviewChannelsTable,
   reviewChannelVideosTable,
@@ -39,6 +40,7 @@ router.get("/stats", async (_req: Request, res: Response): Promise<void> => {
     [bacsRow],
     [channelsRow],
     [channelVideosRow],
+    [homeworkRow],
     lessonsByType,
     usersByGrade,
     recentUsers,
@@ -58,6 +60,7 @@ router.get("/stats", async (_req: Request, res: Response): Promise<void> => {
     db.select({ total: count() }).from(baccalaureatePapersTable),
     db.select({ total: count() }).from(reviewChannelsTable),
     db.select({ total: count() }).from(reviewChannelVideosTable),
+    db.select({ total: count() }).from(homeworkTable),
     db
       .select({ type: lessonsTable.type, total: count() })
       .from(lessonsTable)
@@ -121,6 +124,7 @@ router.get("/stats", async (_req: Request, res: Response): Promise<void> => {
       baccalaureates: bacsRow?.total ?? 0,
       channels: channelsRow?.total ?? 0,
       channelVideos: channelVideosRow?.total ?? 0,
+      homework: homeworkRow?.total ?? 0,
     },
     lessonsByType,
     usersByGrade,

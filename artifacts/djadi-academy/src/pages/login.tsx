@@ -69,7 +69,7 @@ export default function Login() {
             transition={{ duration: 0.6 }}
           >
             <img src={logoUrl} alt="Logo" className="w-32 h-32 mx-auto mb-8 drop-shadow-2xl brightness-0 invert" />
-            <h1 className="text-4xl font-extrabold mb-4">أكاديمية جادي</h1>
+            <h1 className="text-4xl font-extrabold mb-4">منصة جعدي</h1>
             <p className="text-xl text-primary-foreground/80">رفيقك الذكي نحو البكالوريا</p>
           </motion.div>
         </div>

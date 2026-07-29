@@ -1,4 +1,4 @@
-import { Router, type IRouter, type Request, type Response } from "express";
+import { Router, type IRouter, type Request, type Response, type NextFunction } from "express";
 import { eq } from "drizzle-orm";
 import { db, lessonsTable, subjectsTable } from "@workspace/db";
 import { GetLessonParams, ListLessonsQueryParams } from "@workspace/api-zod";

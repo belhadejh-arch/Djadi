@@ -126,7 +126,7 @@ export default function AdminDashboard() {
     <div className="space-y-8" dir="rtl">
       <div>
         <h1 className="text-2xl font-bold">لوحة التحكم</h1>
-        <p className="text-muted-foreground text-sm mt-1">إحصائيات شاملة لمنصة أكاديمية جادي</p>
+        <p className="text-muted-foreground text-sm mt-1">إحصائيات شاملة لمنصة جعدي</p>
       </div>
 
       {/* Users */}
@@ -152,6 +152,7 @@ export default function AdminDashboard() {
           <StatCard title="البكالوريات" value={counts?.baccalaureates} icon={Award} href="/admin/baccalaureates" color="text-yellow-600" bg="bg-yellow-50 dark:bg-yellow-950" />
           <StatCard title="قنوات المراجعة" value={counts?.channels} icon={Youtube} href="/admin/review-channels" color="text-rose-600" bg="bg-rose-50 dark:bg-rose-950" />
           <StatCard title="فيديوهات القنوات" value={counts?.channelVideos} icon={PlayCircle} href="/admin/review-channels" color="text-pink-600" bg="bg-pink-50 dark:bg-pink-950" />
+          <StatCard title="الواجبات المنزلية" value={counts?.homework} icon={BookOpen} href="/admin/homework" color="text-emerald-600" bg="bg-emerald-50 dark:bg-emerald-950" />
         </div>
       </section>
 

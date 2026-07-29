@@ -1,21 +1,21 @@
 import { createContext, useContext, useState, ReactNode } from "react";
 
-type Lang = "ar" | "fr";
+export type Lang = "ar" | "fr" | "en";
 
 interface LanguageContextValue {
   lang: Lang;
-  toggleLang: () => void;
-  t: (ar: string, fr: string) => string;
+  setLang: (lang: Lang) => void;
+  t: (ar: string, fr: string, en?: string) => string;
 }
 
 const LanguageContext = createContext<LanguageContextValue>({
   lang: "ar",
-  toggleLang: () => {},
+  setLang: () => {},
   t: (ar) => ar,
 });
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [lang, setLang] = useState<Lang>(() => {
+  const [lang, setLangState] = useState<Lang>(() => {
     try {
       return (localStorage.getItem("djadi_lang") as Lang) || "ar";
     } catch {
@@ -23,20 +23,21 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     }
   });
 
-  const toggleLang = () => {
-    setLang((prev) => {
-      const next = prev === "ar" ? "fr" : "ar";
-      try {
-        localStorage.setItem("djadi_lang", next);
-      } catch {}
-      return next;
-    });
+  const setLang = (next: Lang) => {
+    setLangState(next);
+    try {
+      localStorage.setItem("djadi_lang", next);
+    } catch {}
   };
 
-  const t = (ar: string, fr: string) => (lang === "ar" ? ar : fr);
+  const t = (ar: string, fr: string, en?: string): string => {
+    if (lang === "ar") return ar;
+    if (lang === "en") return en ?? fr;
+    return fr;
+  };
 
   return (
-    <LanguageContext.Provider value={{ lang, toggleLang, t }}>
+    <LanguageContext.Provider value={{ lang, setLang, t }}>
       {children}
     </LanguageContext.Provider>
   );

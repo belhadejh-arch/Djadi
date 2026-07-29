@@ -15,6 +15,7 @@ import languageSettingsRouter from "./language-settings";
 import dashboardRouter from "./dashboard";
 import backupRouter from "./backup";
 import auditLogsRouter from "./audit-logs";
+import homeworkRouter from "./homework";
 
 const router: IRouter = Router();
 
@@ -36,5 +37,6 @@ router.use("/review-channels", reviewChannelsRouter);
 router.use("/announcements", announcementsRouter);
 router.use("/notifications", notificationsRouter);
 router.use("/language-settings", languageSettingsRouter);
+router.use("/homework", homeworkRouter);
 
 export default router;

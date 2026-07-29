@@ -15,10 +15,10 @@ import {
   Map,
   Brain,
   Star,
-  Dumbbell,
   Cpu,
   Receipt,
   Scale,
+  Mountain,
   type LucideIcon,
 } from "lucide-react";
 
@@ -49,11 +49,20 @@ export interface BranchDef {
 
 const S_ARABIC: SubjectDef = {
   id: "arabic",
-  nameAr: "اللغة العربية وآدابها",
-  nameFr: "Langue et Littérature Arabes",
+  nameAr: "اللغة العربية",
+  nameFr: "Langue Arabe",
   icon: BookOpen,
   color: "#16a34a",
 };
+
+const S_ARABIC_LIT: SubjectDef = {
+  id: "arabic-lit",
+  nameAr: "الأدب العربي",
+  nameFr: "Littérature Arabe",
+  icon: BookOpen,
+  color: "#16a34a",
+};
+
 const S_MATH: SubjectDef = {
   id: "math",
   nameAr: "الرياضيات",
@@ -61,20 +70,31 @@ const S_MATH: SubjectDef = {
   icon: Calculator,
   color: "#2563eb",
 };
+
 const S_PHYSICS: SubjectDef = {
   id: "physics",
-  nameAr: "الفيزياء والكيمياء",
-  nameFr: "Physique et Chimie",
+  nameAr: "العلوم الفيزيائية",
+  nameFr: "Sciences Physiques",
   icon: Atom,
   color: "#7c3aed",
 };
+
 const S_BIOLOGY: SubjectDef = {
   id: "biology",
-  nameAr: "علوم الطبيعة والحياة",
+  nameAr: "العلوم الطبيعية والحياة",
   nameFr: "Sciences de la Nature et de la Vie",
   icon: Leaf,
   color: "#059669",
 };
+
+const S_BIOLOGY_SIMPLE: SubjectDef = {
+  id: "biology-simple",
+  nameAr: "العلوم الطبيعية",
+  nameFr: "Sciences Naturelles",
+  icon: Leaf,
+  color: "#059669",
+};
+
 const S_FRENCH: SubjectDef = {
   id: "french",
   nameAr: "اللغة الفرنسية",
@@ -82,6 +102,7 @@ const S_FRENCH: SubjectDef = {
   icon: Globe,
   color: "#4f46e5",
 };
+
 const S_ENGLISH: SubjectDef = {
   id: "english",
   nameAr: "اللغة الإنجليزية",
@@ -89,6 +110,7 @@ const S_ENGLISH: SubjectDef = {
   icon: Globe2,
   color: "#0284c7",
 };
+
 const S_HISTORY: SubjectDef = {
   id: "history",
   nameAr: "التاريخ والجغرافيا",
@@ -96,6 +118,7 @@ const S_HISTORY: SubjectDef = {
   icon: Map,
   color: "#b45309",
 };
+
 const S_PHILOSOPHY: SubjectDef = {
   id: "philosophy",
   nameAr: "الفلسفة",
@@ -103,20 +126,23 @@ const S_PHILOSOPHY: SubjectDef = {
   icon: Brain,
   color: "#db2777",
 };
+
 const S_ISLAMIC: SubjectDef = {
   id: "islamic",
-  nameAr: "التربية الإسلامية",
-  nameFr: "Éducation Islamique",
+  nameAr: "العلوم الإسلامية",
+  nameFr: "Sciences Islamiques",
   icon: Star,
   color: "#0d9488",
 };
-const S_PE: SubjectDef = {
-  id: "pe",
-  nameAr: "التربية البدنية والرياضية",
-  nameFr: "Éducation Physique et Sportive",
-  icon: Dumbbell,
+
+const S_AMAZIGH: SubjectDef = {
+  id: "amazigh",
+  nameAr: "اللغة الأمازيغية",
+  nameFr: "Langue Amazighe",
+  icon: Mountain,
   color: "#ea580c",
 };
+
 const S_TECH: SubjectDef = {
   id: "tech",
   nameAr: "التكنولوجيا",
@@ -124,13 +150,15 @@ const S_TECH: SubjectDef = {
   icon: Cpu,
   color: "#0891b2",
 };
+
 const S_ECONOMICS: SubjectDef = {
   id: "economics",
-  nameAr: "اقتصاد وإدارة المؤسسات",
-  nameFr: "Économie et Gestion des Entreprises",
+  nameAr: "الاقتصاد والمانجمنت",
+  nameFr: "Économie et Management",
   icon: TrendingUp,
   color: "#7c3aed",
 };
+
 const S_ACCOUNTING: SubjectDef = {
   id: "accounting",
   nameAr: "المحاسبة والمالية",
@@ -138,6 +166,7 @@ const S_ACCOUNTING: SubjectDef = {
   icon: Receipt,
   color: "#ca8a04",
 };
+
 const S_LAW: SubjectDef = {
   id: "law",
   nameAr: "القانون",
@@ -145,6 +174,7 @@ const S_LAW: SubjectDef = {
   icon: Scale,
   color: "#b91c1c",
 };
+
 const S_THIRD_LANG_PLACEHOLDER: SubjectDef = {
   id: "third-language",
   nameAr: "اللغة الأجنبية الثالثة",
@@ -158,21 +188,21 @@ const S_THIRD_LANG_PLACEHOLDER: SubjectDef = {
 export const THIRD_LANGUAGE_SUBJECTS: Record<ThirdLanguage, SubjectDef> = {
   german: {
     id: "german",
-    nameAr: "اللغة الألمانية",
+    nameAr: "الألمانية",
     nameFr: "Langue Allemande",
     icon: Languages,
     color: "#be185d",
   },
   spanish: {
     id: "spanish",
-    nameAr: "اللغة الإسبانية",
+    nameAr: "الإسبانية",
     nameFr: "Langue Espagnole",
     icon: Languages,
     color: "#be185d",
   },
   italian: {
     id: "italian",
-    nameAr: "اللغة الإيطالية",
+    nameAr: "الإيطالية",
     nameFr: "Langue Italienne",
     icon: Languages,
     color: "#be185d",
@@ -200,7 +230,7 @@ export const BRANCHES: BranchDef[] = [
       S_HISTORY,
       S_PHILOSOPHY,
       S_ISLAMIC,
-      S_PE,
+      S_AMAZIGH,
     ],
   },
   {
@@ -218,7 +248,7 @@ export const BRANCHES: BranchDef[] = [
       S_HISTORY,
       S_PHILOSOPHY,
       S_ISLAMIC,
-      S_PE,
+      S_AMAZIGH,
     ],
   },
 
@@ -231,16 +261,16 @@ export const BRANCHES: BranchDef[] = [
     color: "#059669",
     grades: ["deuxieme", "troisieme"],
     subjects: [
-      S_ARABIC,
-      S_MATH,
-      S_PHYSICS,
       S_BIOLOGY,
+      S_PHYSICS,
+      S_MATH,
+      S_ARABIC,
       S_FRENCH,
       S_ENGLISH,
-      S_HISTORY,
       S_PHILOSOPHY,
+      S_HISTORY,
       S_ISLAMIC,
-      S_PE,
+      S_AMAZIGH,
     ],
   },
   {
@@ -251,16 +281,16 @@ export const BRANCHES: BranchDef[] = [
     color: "#2563eb",
     grades: ["deuxieme", "troisieme"],
     subjects: [
-      S_ARABIC,
-      S_MATH,
+      S_BIOLOGY_SIMPLE,
       S_PHYSICS,
-      S_BIOLOGY,
+      S_MATH,
+      S_ARABIC,
       S_FRENCH,
       S_ENGLISH,
-      S_HISTORY,
       S_PHILOSOPHY,
+      S_HISTORY,
       S_ISLAMIC,
-      S_PE,
+      S_AMAZIGH,
     ],
   },
   {
@@ -271,16 +301,16 @@ export const BRANCHES: BranchDef[] = [
     color: "#0891b2",
     grades: ["deuxieme", "troisieme"],
     subjects: [
-      S_ARABIC,
-      S_MATH,
-      S_PHYSICS,
       S_TECH,
+      S_PHYSICS,
+      S_MATH,
+      S_ARABIC,
       S_FRENCH,
       S_ENGLISH,
-      S_HISTORY,
       S_PHILOSOPHY,
+      S_HISTORY,
       S_ISLAMIC,
-      S_PE,
+      S_AMAZIGH,
     ],
   },
   {
@@ -291,17 +321,17 @@ export const BRANCHES: BranchDef[] = [
     color: "#7c3aed",
     grades: ["deuxieme", "troisieme"],
     subjects: [
-      S_ARABIC,
-      S_MATH,
       S_ECONOMICS,
+      S_MATH,
       S_ACCOUNTING,
       S_LAW,
+      S_ARABIC,
       S_FRENCH,
       S_ENGLISH,
       S_HISTORY,
       S_PHILOSOPHY,
       S_ISLAMIC,
-      S_PE,
+      S_AMAZIGH,
     ],
   },
   {
@@ -312,14 +342,14 @@ export const BRANCHES: BranchDef[] = [
     color: "#db2777",
     grades: ["deuxieme", "troisieme"],
     subjects: [
-      S_ARABIC,
+      S_ARABIC_LIT,
       S_PHILOSOPHY,
-      S_HISTORY,
       S_MATH,
+      S_HISTORY,
       S_FRENCH,
       S_ENGLISH,
       S_ISLAMIC,
-      S_PE,
+      S_AMAZIGH,
     ],
   },
   {
@@ -330,14 +360,15 @@ export const BRANCHES: BranchDef[] = [
     color: "#be185d",
     grades: ["deuxieme", "troisieme"],
     subjects: [
-      S_ARABIC,
+      S_ARABIC_LIT,
+      S_PHILOSOPHY,
+      S_MATH,
+      S_HISTORY,
       S_FRENCH,
       S_ENGLISH,
       S_THIRD_LANG_PLACEHOLDER,
-      S_HISTORY,
-      S_PHILOSOPHY,
       S_ISLAMIC,
-      S_PE,
+      S_AMAZIGH,
     ],
   },
 ];

@@ -33,6 +33,7 @@ const GradeCalculator     = lazy(() => import('@/pages/grade-calculator'));
 const ScientificCalculator = lazy(() => import('@/pages/scientific-calculator'));
 const ReviewChannels      = lazy(() => import('@/pages/review-channels'));
 const Settings            = lazy(() => import('@/pages/settings'));
+const Favorites           = lazy(() => import('@/pages/favorites'));
 const About               = lazy(() => import('@/pages/about'));
 const PrivacyPolicy       = lazy(() => import('@/pages/privacy-policy'));
 const Terms               = lazy(() => import('@/pages/terms'));
@@ -54,6 +55,7 @@ const AdminNotifications  = lazy(() => import('@/pages/admin/notifications'));
 const AdminLanguageSettings = lazy(() => import('@/pages/admin/language-settings'));
 const AdminBackup         = lazy(() => import('@/pages/admin/backup'));
 const AdminAuditLogs      = lazy(() => import('@/pages/admin/audit-logs'));
+const AdminHomework       = lazy(() => import('@/pages/admin/homework'));
 
 // ── Query client (performance tuned) ───────────────────────────────────────
 const queryClient = new QueryClient({
@@ -198,6 +200,12 @@ function Router() {
         </Route>
         <Route path="/admin/audit-logs">
           <AdminRoute><AdminAuditLogs /></AdminRoute>
+        </Route>
+        <Route path="/admin/homework">
+          <AdminRoute><AdminHomework /></AdminRoute>
+        </Route>
+        <Route path="/favorites">
+          <ProtectedRoute><Favorites /></ProtectedRoute>
         </Route>
 
         <Route component={NotFound} />

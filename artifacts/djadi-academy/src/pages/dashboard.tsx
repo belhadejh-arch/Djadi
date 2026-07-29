@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
+import { LastActivity } from "@/components/last-activity";
 
 export default function Dashboard() {
   const { data: user } = useGetMe();
@@ -126,8 +127,11 @@ export default function Dashboard() {
           </div>
         </section>
 
-        {/* Recent Lessons */}
-        <section className="space-y-3">
+        {/* Right column: Last Activity + Recent Lessons */}
+        <section className="space-y-5">
+          {/* Last Activity widget */}
+          <LastActivity />
+
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-bold">آخر الدروس</h2>
             <Link href="/lessons" className="text-primary text-sm font-semibold hover:underline">الكل</Link>
@@ -166,3 +170,4 @@ export default function Dashboard() {
     </div>
   );
 }
+

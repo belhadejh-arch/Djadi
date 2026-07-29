@@ -47,7 +47,7 @@ const DEMO_NOTIFICATIONS: Notification[] = [
   },
   {
     id: "3",
-    title: "مرحباً بك في أكاديمية جادي",
+    title: "مرحباً بك في منصة جعدي",
     description: "تم تفعيل حسابك بنجاح. ابدأ رحلتك التعليمية الآن!",
     date: "2026-07-27",
     time: "10:00",

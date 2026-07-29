@@ -1,18 +1,34 @@
+import { useEffect } from "react";
 import { useParams, Link } from "wouter";
 import { useGetLesson } from "@workspace/api-client-react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import {
-  ChevronRight, Play, FileText, Clock, Calendar,
+  ChevronRight, FileText, Clock, Calendar,
   ExternalLink, AlertCircle, Lock,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
+import { FavoriteButton } from "@/components/favorite-button";
 
 const BASE_URL = import.meta.env.BASE_URL?.replace(/\/$/, "") || "";
 
-// ── Protected content fetch ──────────────────────────────────────────────────
+// ── Record lesson view in activity log ───────────────────────────────────────
+function useRecordActivity() {
+  return useMutation({
+    mutationFn: async (body: { lessonId: number; lessonTitle?: string; subjectName?: string }) => {
+      await fetch(`${BASE_URL}/api/activity`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+    },
+  });
+}
+
+// ── Protected content fetch ───────────────────────────────────────────────────
 function useLessonContent(id: number) {
   return useQuery({
     queryKey: ["lesson-content", id],
@@ -28,7 +44,7 @@ function useLessonContent(id: number) {
   });
 }
 
-// ── Content renderer ─────────────────────────────────────────────────────────
+// ── Content renderer ──────────────────────────────────────────────────────────
 function ContentPlayer({ type, url, pdfUrl, videoUrl, linkUrl }: {
   type: string; url: string | null;
   pdfUrl: string | null; videoUrl: string | null; linkUrl: string | null;
@@ -43,27 +59,19 @@ function ContentPlayer({ type, url, pdfUrl, videoUrl, linkUrl }: {
   }
 
   if (type === "video" && videoUrl) {
-    // Try HTML5 video first, fall back to iframe (YouTube/Vimeo)
     const isDirectVideo = /\.(mp4|webm|ogg)(\?|$)/i.test(videoUrl);
     return isDirectVideo ? (
-      <div
-        className="aspect-video bg-black select-none"
-        onContextMenu={(e) => e.preventDefault()}
-      >
+      <div className="aspect-video bg-black select-none" onContextMenu={(e) => e.preventDefault()}>
         <video
           src={videoUrl}
           controls
           controlsList="nodownload noremoteplayback"
           disablePictureInPicture
           className="w-full h-full"
-          style={{ pointerEvents: "auto" }}
         />
       </div>
     ) : (
-      <div
-        className="aspect-video bg-black select-none"
-        onContextMenu={(e) => e.preventDefault()}
-      >
+      <div className="aspect-video bg-black select-none" onContextMenu={(e) => e.preventDefault()}>
         <iframe
           src={videoUrl}
           className="w-full h-full"
@@ -78,15 +86,11 @@ function ContentPlayer({ type, url, pdfUrl, videoUrl, linkUrl }: {
 
   if (type === "pdf" && pdfUrl) {
     return (
-      <div
-        className="w-full bg-muted select-none h-[60vh] sm:h-[72vh]"
-        onContextMenu={(e) => e.preventDefault()}
-      >
+      <div className="w-full bg-muted select-none h-[60vh] sm:h-[72vh]" onContextMenu={(e) => e.preventDefault()}>
         <iframe
           src={`${pdfUrl}#toolbar=0&navpanes=0`}
           className="w-full h-full border-0"
           title="document"
-          sandbox="allow-same-origin allow-scripts"
         />
       </div>
     );
@@ -121,6 +125,19 @@ export default function LessonDetail() {
     query: { enabled: !!lessonId },
   });
   const { data: content, isLoading: contentLoading } = useLessonContent(lessonId);
+  const recordActivity = useRecordActivity();
+
+  // Record view when lesson loads
+  useEffect(() => {
+    if (lesson && lessonId) {
+      recordActivity.mutate({
+        lessonId,
+        lessonTitle: lesson.titleAr ?? lesson.title,
+        subjectName: lesson.subjectName ?? undefined,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lessonId, lesson?.id]);
 
   if (isLoading) {
     return (
@@ -179,6 +196,15 @@ export default function LessonDetail() {
                 {lesson.subjectName}
               </Badge>
             )}
+            {/* Favorite button */}
+            <div className="mr-auto">
+              <FavoriteButton
+                itemType="lesson"
+                itemId={lesson.id}
+                itemTitle={lesson.titleAr ?? lesson.title}
+                size="md"
+              />
+            </div>
           </div>
 
           <h1 className="text-3xl md:text-4xl font-extrabold mb-3">{lesson.titleAr}</h1>

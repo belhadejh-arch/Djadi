@@ -12,3 +12,6 @@ export * from "./announcements";
 export * from "./notifications";
 export * from "./language-settings";
 export * from "./audit-logs";
+export * from "./homework";
+export * from "./favorites";
+export * from "./activity";

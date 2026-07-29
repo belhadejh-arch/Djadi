@@ -137,6 +137,14 @@ export const adminApi = {
     update: (id: number, body: any) => request<any>("PATCH", `/language-settings/${id}`, body),
     delete: (id: number) => request<any>("DELETE", `/language-settings/${id}`),
   },
+  // Homework
+  homework: {
+    list: () => request<any[]>("GET", "/homework"),
+    get: (id: number) => request<any>("GET", `/homework/${id}`),
+    create: (body: any) => request<any>("POST", "/homework", body),
+    update: (id: number, body: any) => request<any>("PATCH", `/homework/${id}`, body),
+    delete: (id: number) => request<any>("DELETE", `/homework/${id}`),
+  },
   // Dashboard
   dashboard: {
     stats: () => request<any>("GET", "/dashboard/stats"),

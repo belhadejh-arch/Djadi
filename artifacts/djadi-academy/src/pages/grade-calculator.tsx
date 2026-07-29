@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, CheckCircle2, XCircle, Trophy } from "lucide-react";
+import { useLang } from "@/lib/language-context";
 
 // ── BAC target: 07 June 2027, 08:00 AM (Algeria = UTC+1) ──────────────────
 const BAC_DATE = new Date("2027-06-07T08:00:00+01:00");
@@ -24,16 +25,16 @@ const BRANCHES: Branch[] = [
     nameAr: "علوم تجريبية",
     nameFr: "Sciences Expérimentales",
     subjects: [
-      { nameAr: "اللغة العربية وآدابها", defaultCoeff: 3 },
+      { nameAr: "اللغة العربية", defaultCoeff: 3 },
       { nameAr: "الرياضيات", defaultCoeff: 4 },
-      { nameAr: "الفيزياء والكيمياء", defaultCoeff: 6 },
-      { nameAr: "علوم الطبيعة والحياة", defaultCoeff: 6 },
+      { nameAr: "العلوم الفيزيائية", defaultCoeff: 6 },
+      { nameAr: "العلوم الطبيعية والحياة", defaultCoeff: 6 },
       { nameAr: "اللغة الفرنسية", defaultCoeff: 2 },
       { nameAr: "اللغة الإنجليزية", defaultCoeff: 2 },
       { nameAr: "التاريخ والجغرافيا", defaultCoeff: 2 },
       { nameAr: "الفلسفة", defaultCoeff: 2 },
-      { nameAr: "التربية الإسلامية", defaultCoeff: 1 },
-      { nameAr: "التربية البدنية والرياضية", defaultCoeff: 1 },
+      { nameAr: "العلوم الإسلامية", defaultCoeff: 1 },
+      { nameAr: "اللغة الأمازيغية", defaultCoeff: 1 },
     ],
   },
   {
@@ -41,16 +42,16 @@ const BRANCHES: Branch[] = [
     nameAr: "رياضيات",
     nameFr: "Mathématiques",
     subjects: [
-      { nameAr: "اللغة العربية وآدابها", defaultCoeff: 3 },
+      { nameAr: "اللغة العربية", defaultCoeff: 3 },
       { nameAr: "الرياضيات", defaultCoeff: 7 },
-      { nameAr: "الفيزياء والكيمياء", defaultCoeff: 7 },
-      { nameAr: "علوم الطبيعة والحياة", defaultCoeff: 2 },
+      { nameAr: "العلوم الفيزيائية", defaultCoeff: 7 },
+      { nameAr: "العلوم الطبيعية", defaultCoeff: 2 },
       { nameAr: "اللغة الفرنسية", defaultCoeff: 2 },
       { nameAr: "اللغة الإنجليزية", defaultCoeff: 2 },
       { nameAr: "التاريخ والجغرافيا", defaultCoeff: 1 },
       { nameAr: "الفلسفة", defaultCoeff: 2 },
-      { nameAr: "التربية الإسلامية", defaultCoeff: 1 },
-      { nameAr: "التربية البدنية والرياضية", defaultCoeff: 1 },
+      { nameAr: "العلوم الإسلامية", defaultCoeff: 1 },
+      { nameAr: "اللغة الأمازيغية", defaultCoeff: 1 },
     ],
   },
   {
@@ -58,16 +59,16 @@ const BRANCHES: Branch[] = [
     nameAr: "تقني رياضي",
     nameFr: "Technique Mathématique",
     subjects: [
-      { nameAr: "اللغة العربية وآدابها", defaultCoeff: 3 },
+      { nameAr: "اللغة العربية", defaultCoeff: 3 },
       { nameAr: "الرياضيات", defaultCoeff: 6 },
-      { nameAr: "الفيزياء والكيمياء", defaultCoeff: 4 },
+      { nameAr: "العلوم الفيزيائية", defaultCoeff: 4 },
       { nameAr: "التكنولوجيا", defaultCoeff: 8 },
       { nameAr: "اللغة الفرنسية", defaultCoeff: 2 },
       { nameAr: "اللغة الإنجليزية", defaultCoeff: 2 },
       { nameAr: "التاريخ والجغرافيا", defaultCoeff: 1 },
       { nameAr: "الفلسفة", defaultCoeff: 2 },
-      { nameAr: "التربية الإسلامية", defaultCoeff: 1 },
-      { nameAr: "التربية البدنية والرياضية", defaultCoeff: 1 },
+      { nameAr: "العلوم الإسلامية", defaultCoeff: 1 },
+      { nameAr: "اللغة الأمازيغية", defaultCoeff: 1 },
     ],
   },
   {
@@ -75,17 +76,17 @@ const BRANCHES: Branch[] = [
     nameAr: "تسيير واقتصاد",
     nameFr: "Gestion et Économie",
     subjects: [
-      { nameAr: "اللغة العربية وآدابها", defaultCoeff: 3 },
+      { nameAr: "اللغة العربية", defaultCoeff: 3 },
       { nameAr: "الرياضيات", defaultCoeff: 4 },
-      { nameAr: "اقتصاد وإدارة المؤسسات", defaultCoeff: 6 },
+      { nameAr: "الاقتصاد والمانجمنت", defaultCoeff: 6 },
       { nameAr: "المحاسبة والمالية", defaultCoeff: 5 },
       { nameAr: "القانون", defaultCoeff: 3 },
       { nameAr: "اللغة الفرنسية", defaultCoeff: 2 },
       { nameAr: "اللغة الإنجليزية", defaultCoeff: 2 },
       { nameAr: "التاريخ والجغرافيا", defaultCoeff: 1 },
       { nameAr: "الفلسفة", defaultCoeff: 1 },
-      { nameAr: "التربية الإسلامية", defaultCoeff: 1 },
-      { nameAr: "التربية البدنية والرياضية", defaultCoeff: 1 },
+      { nameAr: "العلوم الإسلامية", defaultCoeff: 1 },
+      { nameAr: "اللغة الأمازيغية", defaultCoeff: 1 },
     ],
   },
   {
@@ -93,29 +94,29 @@ const BRANCHES: Branch[] = [
     nameAr: "آداب وفلسفة",
     nameFr: "Lettres et Philosophie",
     subjects: [
-      { nameAr: "اللغة العربية وآدابها", defaultCoeff: 5 },
+      { nameAr: "الأدب العربي", defaultCoeff: 5 },
       { nameAr: "الفلسفة", defaultCoeff: 6 },
       { nameAr: "التاريخ والجغرافيا", defaultCoeff: 5 },
       { nameAr: "الرياضيات", defaultCoeff: 2 },
       { nameAr: "اللغة الفرنسية", defaultCoeff: 3 },
       { nameAr: "اللغة الإنجليزية", defaultCoeff: 2 },
-      { nameAr: "التربية الإسلامية", defaultCoeff: 2 },
-      { nameAr: "التربية البدنية والرياضية", defaultCoeff: 1 },
+      { nameAr: "العلوم الإسلامية", defaultCoeff: 2 },
+      { nameAr: "اللغة الأمازيغية", defaultCoeff: 1 },
     ],
   },
   {
     id: "lettres-langues",
-    nameAr: "لغات أجنبية",
+    nameAr: "آداب ولغات أجنبية",
     nameFr: "Lettres et Langues Étrangères",
     subjects: [
-      { nameAr: "اللغة العربية وآدابها", defaultCoeff: 4 },
+      { nameAr: "الأدب العربي", defaultCoeff: 4 },
       { nameAr: "اللغة الفرنسية", defaultCoeff: 5 },
       { nameAr: "اللغة الإنجليزية", defaultCoeff: 5 },
       { nameAr: "اللغة الأجنبية الثالثة", defaultCoeff: 4 },
       { nameAr: "التاريخ والجغرافيا", defaultCoeff: 3 },
       { nameAr: "الفلسفة", defaultCoeff: 2 },
-      { nameAr: "التربية الإسلامية", defaultCoeff: 2 },
-      { nameAr: "التربية البدنية والرياضية", defaultCoeff: 1 },
+      { nameAr: "العلوم الإسلامية", defaultCoeff: 2 },
+      { nameAr: "اللغة الأمازيغية", defaultCoeff: 1 },
     ],
   },
 ];
@@ -145,7 +146,7 @@ function useCountdown(target: Date) {
 interface Row {
   nameAr: string;
   coeff: number;
-  grade: string; // free text, parsed to float
+  grade: string;
 }
 
 function initRows(branch: Branch): Row[] {
@@ -172,6 +173,7 @@ function CountUnit({ value, label }: { value: number; label: string }) {
 
 // ─────────────────────────────────────────────────────────────────────────
 export default function GradeCalculator() {
+  const { t } = useLang();
   const countdown = useCountdown(BAC_DATE);
   const [branchId, setBranchId] = useState<string>(BRANCHES[0].id);
   const [rows, setRows] = useState<Row[]>(() => initRows(BRANCHES[0]));
@@ -197,10 +199,8 @@ export default function GradeCalculator() {
       prev.map((r, idx) => (idx === i ? { ...r, grade: val } : r))
     );
 
-  // Calculate average
   const result = (() => {
-    let wSum = 0,
-      cSum = 0;
+    let wSum = 0, cSum = 0;
     for (const r of rows) {
       const g = parseFloat(r.grade);
       if (!isNaN(g) && r.coeff > 0) {
@@ -224,27 +224,27 @@ export default function GradeCalculator() {
           <div className="flex items-center gap-2">
             <Trophy className="w-5 h-5 text-yellow-300 shrink-0" />
             <div>
-              <p className="font-extrabold text-base leading-tight">عداد البكالوريا 2027</p>
+              <p className="font-extrabold text-base leading-tight">
+                {t("عداد البكالوريا 2027", "Compte à rebours Bac 2027", "Bac 2027 Countdown")}
+              </p>
               <p className="text-white/60 text-xs" dir="ltr">07 Jun 2027 — 08:00 AM</p>
             </div>
           </div>
           <div className="flex items-end gap-2">
-            <CountUnit value={countdown.weeks} label="أسبوع" />
-            <CountUnit value={countdown.days % 7} label="يوم" />
-            <CountUnit value={countdown.hours} label="ساعة" />
-            <CountUnit value={countdown.minutes} label="دقيقة" />
-            <CountUnit value={countdown.seconds} label="ثانية" />
+            <CountUnit value={countdown.weeks} label={t("أسبوع", "sem", "wk")} />
+            <CountUnit value={countdown.days % 7} label={t("يوم", "j", "d")} />
+            <CountUnit value={countdown.hours} label={t("ساعة", "h", "h")} />
+            <CountUnit value={countdown.minutes} label={t("دقيقة", "min", "min")} />
+            <CountUnit value={countdown.seconds} label={t("ثانية", "sec", "sec")} />
           </div>
         </div>
       </div>
 
-      {/* ── Main Grid: selector + table + result ─────────────────────── */}
+      {/* ── Main Grid ─────────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-4">
 
         {/* Left: Branch + Subjects ─────────────────────────────────── */}
         <div className="space-y-3">
-
-          {/* Branch Dropdown */}
           <div className="relative">
             <button
               onClick={() => setDropdownOpen((v) => !v)}
@@ -282,43 +282,29 @@ export default function GradeCalculator() {
 
           {/* Subjects Table */}
           <div className="bg-card rounded-xl border border-border overflow-hidden shadow-sm">
-            {/* Header */}
             <div className="grid grid-cols-[1fr_auto_88px] sm:grid-cols-[1fr_auto_112px] gap-x-2 px-3 py-2 bg-muted border-b text-xs font-bold text-muted-foreground">
-              <span>المادة</span>
-              <span className="text-center w-20 sm:w-24">المعامل</span>
-              <span className="text-center">العلامة / 20</span>
+              <span>{t("المادة", "Matière", "Subject")}</span>
+              <span className="text-center w-20 sm:w-24">{t("المعامل", "Coeff", "Coeff")}</span>
+              <span className="text-center">{t("العلامة / 20", "Note / 20", "Grade / 20")}</span>
             </div>
-
-            {/* Rows */}
             <div className="divide-y divide-border">
               {rows.map((row, i) => (
                 <div
                   key={row.nameAr}
                   className="grid grid-cols-[1fr_auto_88px] sm:grid-cols-[1fr_auto_112px] gap-x-2 px-3 py-2 items-center"
                 >
-                  {/* Subject name */}
                   <span className="text-sm font-medium leading-tight">{row.nameAr}</span>
-
-                  {/* Coefficient +/- */}
                   <div className="flex items-center gap-1 w-20 sm:w-24 justify-center">
                     <button
                       onClick={() => setCoeff(i, -1)}
                       className="w-7 h-7 rounded-lg bg-muted hover:bg-red-100 dark:hover:bg-red-900/30 text-muted-foreground hover:text-red-600 font-bold text-base transition-colors flex items-center justify-center leading-none"
-                    >
-                      −
-                    </button>
-                    <span className="w-6 text-center text-sm font-bold tabular-nums select-none">
-                      {row.coeff}
-                    </span>
+                    >−</button>
+                    <span className="w-6 text-center text-sm font-bold tabular-nums select-none">{row.coeff}</span>
                     <button
                       onClick={() => setCoeff(i, +1)}
                       className="w-7 h-7 rounded-lg bg-muted hover:bg-emerald-100 dark:hover:bg-emerald-900/30 text-muted-foreground hover:text-emerald-600 font-bold text-base transition-colors flex items-center justify-center leading-none"
-                    >
-                      +
-                    </button>
+                    >+</button>
                   </div>
-
-                  {/* Grade input */}
                   <input
                     type="number"
                     min="0"
@@ -338,8 +324,6 @@ export default function GradeCalculator() {
 
         {/* Right: Result Card ──────────────────────────────────────────── */}
         <div className="flex flex-col gap-4">
-
-          {/* Average Result */}
           <div
             className={`rounded-2xl p-5 text-center flex flex-col items-center justify-center gap-3 border-2 transition-all shadow-sm min-h-[200px] ${
               result === null
@@ -350,16 +334,13 @@ export default function GradeCalculator() {
             }`}
           >
             <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-              المعدل الإجمالي
+              {t("المعدل الإجمالي", "Moyenne Générale", "Overall Average")}
             </p>
-
             {result !== null ? (
               <>
-                <p
-                  className={`text-6xl font-extrabold tabular-nums ${
-                    pass ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"
-                  }`}
-                >
+                <p className={`text-6xl font-extrabold tabular-nums ${
+                  pass ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"
+                }`}>
                   {result.toFixed(2)}
                 </p>
                 <div className={`flex items-center gap-2 px-4 py-2 rounded-full font-bold text-sm ${
@@ -368,25 +349,24 @@ export default function GradeCalculator() {
                     : "bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300"
                 }`}>
                   {pass ? (
-                    <><CheckCircle2 className="w-4 h-4" /> ناجح ✅</>
+                    <><CheckCircle2 className="w-4 h-4" /> {t("ناجح ✅", "Admis ✅", "Passed ✅")}</>
                   ) : (
-                    <><XCircle className="w-4 h-4" /> راسب ❌</>
+                    <><XCircle className="w-4 h-4" /> {t("راسب ❌", "Refusé ❌", "Failed ❌")}</>
                   )}
                 </div>
               </>
             ) : (
               <p className="text-5xl font-extrabold text-muted-foreground/40">—</p>
             )}
-
             <p className="text-xs text-muted-foreground">
-              {filledCount} / {rows.length} مادة مُدخلة
+              {filledCount} / {rows.length} {t("مادة مُدخلة", "matière(s) saisie(s)", "subject(s) entered")}
             </p>
           </div>
 
           {/* Progress per subject */}
           <div className="bg-card rounded-xl border border-border p-4 space-y-2 shadow-sm">
             <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">
-              تفصيل العلامات
+              {t("تفصيل العلامات", "Détail des notes", "Grade Details")}
             </p>
             {rows.map((r) => {
               const g = parseFloat(r.grade);
@@ -413,7 +393,6 @@ export default function GradeCalculator() {
             })}
           </div>
 
-          {/* Formula note */}
           <div className="bg-muted rounded-xl px-4 py-3 text-xs text-muted-foreground space-y-1" dir="ltr">
             <p className="font-bold text-center text-foreground/60 mb-1">Formula</p>
             <p className="text-center font-mono">Σ(grade × coeff) ÷ Σ(coeff)</p>

@@ -4,6 +4,7 @@ import { useGetMe, useLogout, getGetMeQueryKey } from "@workspace/api-client-rea
 import {
   Home,
   BookOpen,
+  Heart,
   LogOut,
   Sun,
   Moon,
@@ -13,6 +14,7 @@ import {
   FlaskConical,
   Youtube,
   Settings,
+  GraduationCap,
 } from "lucide-react";
 import { useTheme } from "../theme-provider";
 import { useLang } from "@/lib/language-context";
@@ -37,6 +39,8 @@ const bottomNavItems = [
 const sidebarNavItems = [
   { href: "/dashboard", label: "الرئيسية", labelFr: "Accueil", icon: Home },
   { href: "/subjects", label: "المواد", labelFr: "Matières", icon: BookOpen },
+  { href: "/baccalaureate", label: "البكالوريا", labelFr: "Baccalauréat", icon: GraduationCap },
+  { href: "/favorites", label: "المفضلة", labelFr: "Favoris", icon: Heart },
   { href: "/grade-calculator", label: "حساب المعدل", labelFr: "Moyenne", icon: Calculator },
   { href: "/scientific-calculator", label: "الآلة الحاسبة العلمية", labelFr: "Calculatrice", icon: FlaskConical },
   { href: "/review-channels", label: "قنوات المراجعة", labelFr: "Révision", icon: Youtube },
@@ -49,7 +53,12 @@ export function AppLayout({ children }: LayoutProps) {
   const logout = useLogout();
   const queryClient = useQueryClient();
   const { theme, setTheme } = useTheme();
-  const { lang, toggleLang } = useLang();
+  const { lang, setLang } = useLang();
+  const cycleLang = () => {
+    const order: ("ar" | "fr" | "en")[] = ["ar", "fr", "en"];
+    const next = order[(order.indexOf(lang) + 1) % order.length];
+    setLang(next);
+  };
   const { unreadCount } = useNotifications();
 
   const handleLogout = () => {
@@ -65,8 +74,8 @@ export function AppLayout({ children }: LayoutProps) {
       {/* Mobile Header */}
       <header className="md:hidden sticky top-0 z-50 flex items-center justify-between p-4 bg-card border-b">
         <div className="flex items-center gap-3">
-          <img src={logoUrl} alt="Djadi Academy" className="w-8 h-8 object-contain" />
-          <span className="font-bold text-lg text-primary">أكاديمية جادي</span>
+          <img src={logoUrl} alt="منصة جعدي" className="w-8 h-8 object-contain" />
+          <span className="font-bold text-lg text-primary">منصة جعدي</span>
         </div>
 
         {/* Top-left actions (visually left because dir=rtl flips the flex row) */}
@@ -75,8 +84,8 @@ export function AppLayout({ children }: LayoutProps) {
           <Button
             variant="ghost"
             size="icon"
-            onClick={toggleLang}
-            title={lang === "ar" ? "Français" : "العربية"}
+            onClick={cycleLang}
+            title={lang === "ar" ? "FR" : lang === "fr" ? "EN" : "AR"}
             className="relative"
           >
             <Globe className="h-5 w-5" />
@@ -116,11 +125,11 @@ export function AppLayout({ children }: LayoutProps) {
       {/* Desktop Sidebar */}
       <aside className="hidden md:flex w-72 flex-col bg-card border-l min-h-screen sticky top-0">
         <div className="p-6 flex items-center gap-4 border-b">
-          <img src={logoUrl} alt="Djadi Academy" className="w-12 h-12 object-contain" />
+          <img src={logoUrl} alt="منصة جعدي" className="w-12 h-12 object-contain" />
           <div>
-            <h1 className="font-bold text-xl text-primary">أكاديمية جادي</h1>
+            <h1 className="font-bold text-xl text-primary">منصة جعدي</h1>
             <p className="text-xs text-muted-foreground uppercase tracking-wider font-sans" dir="ltr">
-              Djadi Academy
+              Mounassata Djadi
             </p>
           </div>
         </div>
@@ -172,9 +181,9 @@ export function AppLayout({ children }: LayoutProps) {
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={toggleLang}
+                onClick={cycleLang}
                 className="relative"
-                title={lang === "ar" ? "Français" : "العربية"}
+                title={lang === "ar" ? "FR" : lang === "fr" ? "EN" : "AR"}
               >
                 <Globe className="h-4 w-4" />
               </Button>
