@@ -1,6 +1,6 @@
-# [Project name]
+# Djadi Academy
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+A premium educational platform for Algerian secondary school students (1ère, 2ème, 3ème Secondaire) preparing for the Baccalaureate — bilingual Arabic/French, dark mode, Changa font.
 
 ## Run & Operate
 
@@ -22,7 +22,11 @@ _Replace the heading above with the project's name, and this line with one sente
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- Frontend: `artifacts/djadi-academy/src/` — React + Vite + Wouter + Tailwind v4
+- API routes: `artifacts/api-server/src/routes/` — auth, users, subjects, lessons, dashboard
+- DB schema: `lib/db/src/schema/` — users, sessions, subjects, lessons tables
+- OpenAPI spec: `lib/api-spec/openapi.yaml`
+- Logo asset: `attached_assets/IMG_0796_1785328682791.png`
 
 ## Architecture decisions
 

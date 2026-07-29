@@ -1,0 +1,27 @@
+kind = "web"
+previewPath = "/"
+title = "Djadi Academy"
+version = "1.0.0"
+id = "artifacts/djadi-academy"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 20556
+
+[services.development]
+run = "pnpm --filter @workspace/djadi-academy run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/djadi-academy", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/djadi-academy/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "20556"
+BASE_PATH = "/"
