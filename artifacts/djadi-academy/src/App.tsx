@@ -1,20 +1,18 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import { Route, Switch, Router as WouterRouter } from 'wouter';
+import { Route, Switch, Router as WouterRouter, useLocation } from 'wouter';
 import { ThemeProvider } from '@/components/theme-provider';
 import { LanguageProvider } from '@/lib/language-context';
 import { NotificationsProvider } from '@/lib/notifications-context';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useGetMe } from '@workspace/api-client-react';
 
 // Layout & Auth (not lazy — small, needed immediately)
 import { AppLayout } from '@/components/layout/app-layout';
 import { ProtectedRoute } from '@/components/protected-route';
 import { AdminRoute } from '@/components/admin-route';
-
-// Splash loaded eagerly (first page the user sees)
-import Splash from '@/pages/splash';
 
 // ── Lazy-loaded student pages ───────────────────────────────────────────────
 const Login               = lazy(() => import('@/pages/login'));
@@ -85,6 +83,23 @@ function PageSkeleton() {
   );
 }
 
+// Replaces splash — immediately redirects based on auth state
+function HomeRedirect() {
+  const [, setLocation] = useLocation();
+  const { data: user, isLoading } = useGetMe();
+
+  useEffect(() => {
+    if (isLoading) return;
+    if (user) {
+      setLocation(user.grade ? '/dashboard' : '/grade-select');
+    } else {
+      setLocation('/login');
+    }
+  }, [isLoading, user, setLocation]);
+
+  return null;
+}
+
 function ProtectedLayout({ children }: { children: React.ReactNode }) {
   return (
     <ProtectedRoute>
@@ -97,7 +112,7 @@ function Router() {
   return (
     <Suspense fallback={<PageSkeleton />}>
       <Switch>
-        <Route path="/" component={Splash} />
+        <Route path="/" component={HomeRedirect} />
         <Route path="/login" component={Login} />
         <Route path="/register" component={Register} />
 
