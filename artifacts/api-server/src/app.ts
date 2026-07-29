@@ -1,4 +1,4 @@
-import express, { type Express } from "express";
+import express, { type Express, type Request, type Response, type NextFunction } from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import pinoHttp from "pino-http";
@@ -62,5 +62,14 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(generalLimiter);
 
 app.use("/api", router);
+
+// ─── Global JSON error handler ───────────────────────────────────────────────
+// Must be last — catches any unhandled error and returns JSON (not HTML)
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
+  logger.error({ err }, "Unhandled error");
+  const status = (err as { status?: number }).status ?? 500;
+  res.status(status).json({ error: err.message || "Internal server error" });
+});
 
 export default app;
