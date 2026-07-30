@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
@@ -8,6 +8,7 @@ import { LanguageProvider } from '@/lib/language-context';
 import { NotificationsProvider } from '@/lib/notifications-context';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useGetMe } from '@workspace/api-client-react';
+import { SplashScreen, shouldShowSplash } from '@/components/splash-screen';
 
 // Layout & Auth (not lazy — small, needed immediately)
 import { AppLayout } from '@/components/layout/app-layout';
@@ -236,12 +237,17 @@ function Router() {
 }
 
 function App() {
+  const [splashDone, setSplashDone] = useState(() => !shouldShowSplash());
+
   return (
     <ThemeProvider defaultTheme="light" storageKey="djadi-theme">
       <LanguageProvider>
         <NotificationsProvider>
           <QueryClientProvider client={queryClient}>
             <TooltipProvider>
+              {!splashDone && (
+                <SplashScreen onDone={() => setSplashDone(true)} />
+              )}
               <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, '')}>
                 <Router />
               </WouterRouter>
