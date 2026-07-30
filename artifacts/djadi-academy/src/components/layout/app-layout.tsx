@@ -86,7 +86,7 @@ export function AppLayout({ children }: LayoutProps) {
           {/* Language toggle */}
           <Button variant="ghost" size="icon" onClick={cycleLang} className="relative" title={lang === "ar" ? "FR" : lang === "fr" ? "EN" : "AR"}>
             <Globe className="h-5 w-5" />
-            <span className="absolute -bottom-0.5 -left-0.5 text-[8px] font-bold leading-none bg-primary text-primary-foreground rounded px-0.5">
+            <span className="absolute -bottom-0.5 -right-0.5 text-[8px] font-bold leading-none bg-primary text-primary-foreground rounded px-0.5">
               {lang.toUpperCase()}
             </span>
           </Button>
@@ -101,7 +101,7 @@ export function AppLayout({ children }: LayoutProps) {
             <Button variant="ghost" size="icon" className="relative">
               <Bell className="h-5 w-5" />
               {unreadCount > 0 && (
-                <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white rounded-full text-[9px] font-bold flex items-center justify-center">
+                <span className="absolute -top-0.5 -left-0.5 min-w-[18px] h-[18px] bg-red-500 text-white rounded-full text-[9px] font-bold flex items-center justify-center px-0.5">
                   {unreadCount > 9 ? "9+" : unreadCount}
                 </span>
               )}
@@ -127,21 +127,21 @@ export function AppLayout({ children }: LayoutProps) {
           </div>
         </div>
 
-        <nav className="flex-1 p-4 space-y-1">
+        <nav className="flex-1 p-3 space-y-0.5">
           {sidebarNavItems.map((item) => {
             const isActive = location === item.href || location.startsWith(item.href + "/");
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all min-h-[44px] ${
                   isActive
-                    ? "bg-primary text-primary-foreground"
+                    ? "bg-primary text-primary-foreground shadow-sm"
                     : "hover:bg-muted text-foreground"
                 }`}
               >
                 <item.icon className="h-5 w-5 shrink-0" />
-                <span className="font-semibold">{item.label}</span>
+                <span className="font-semibold text-sm">{item.label}</span>
               </Link>
             );
           })}
@@ -162,7 +162,7 @@ export function AppLayout({ children }: LayoutProps) {
             <div className="flex items-center gap-1 shrink-0">
               <Button variant="ghost" size="icon" onClick={cycleLang} className="relative" title={lang === "ar" ? "FR" : lang === "fr" ? "EN" : "AR"}>
                 <Globe className="h-4 w-4" />
-                <span className="absolute -bottom-0.5 -left-0.5 text-[7px] font-bold leading-none bg-primary text-primary-foreground rounded px-0.5">
+                <span className="absolute -bottom-0.5 -right-0.5 text-[7px] font-bold leading-none bg-primary text-primary-foreground rounded px-0.5">
                   {lang.toUpperCase()}
                 </span>
               </Button>
@@ -173,7 +173,7 @@ export function AppLayout({ children }: LayoutProps) {
                 <Button variant="ghost" size="icon" className="relative">
                   <Bell className="h-4 w-4" />
                   {unreadCount > 0 && (
-                    <span className="absolute top-1 right-1 w-3.5 h-3.5 bg-red-500 text-white rounded-full text-[8px] font-bold flex items-center justify-center">
+                    <span className="absolute -top-0.5 -left-0.5 min-w-[16px] h-[16px] bg-red-500 text-white rounded-full text-[8px] font-bold flex items-center justify-center px-0.5">
                       {unreadCount > 9 ? "9+" : unreadCount}
                     </span>
                   )}
@@ -193,24 +193,24 @@ export function AppLayout({ children }: LayoutProps) {
       </aside>
 
       {/* ── Main Content — scrolls independently ───────────────────────────── */}
-      <main className="flex-1 overflow-y-auto pb-20 md:pb-0 min-w-0">
-        <div className="max-w-6xl mx-auto p-4 md:p-8">{children}</div>
+      <main className="flex-1 overflow-y-auto pb-24 md:pb-0 min-w-0">
+        <div className="max-w-6xl mx-auto p-4 md:p-6 lg:p-8">{children}</div>
       </main>
 
       {/* ── Mobile Bottom Nav ───────────────────────────────────────────────── */}
-      <nav className="md:hidden shrink-0 fixed bottom-0 left-0 right-0 bg-card border-t flex items-center justify-around py-1 pb-safe z-50">
+      <nav className="md:hidden shrink-0 fixed bottom-0 left-0 right-0 bg-card border-t flex items-center justify-around py-1.5 z-50" style={{ paddingBottom: "max(0.375rem, env(safe-area-inset-bottom))" }}>
         {bottomNavItems.map((item) => {
           const isActive = location === item.href || location.startsWith(item.href + "/");
           return (
             <Link
               key={item.href}
               href={item.href}
-              className={`flex flex-col items-center py-1.5 px-1 rounded-lg min-w-0 flex-1 ${
+              className={`flex flex-col items-center gap-0.5 py-1 px-2 rounded-xl min-w-0 flex-1 min-h-[44px] justify-center transition-colors ${
                 isActive ? "text-primary" : "text-muted-foreground"
               }`}
             >
-              <item.icon className="h-[18px] w-[18px] mb-0.5 shrink-0" />
-              <span className="text-[9px] font-medium leading-tight text-center w-full truncate px-0.5">
+              <item.icon className={`h-5 w-5 shrink-0 transition-transform ${isActive ? "scale-110" : ""}`} />
+              <span className="text-[10px] font-medium leading-tight text-center w-full truncate px-0.5">
                 {item.label}
               </span>
             </Link>

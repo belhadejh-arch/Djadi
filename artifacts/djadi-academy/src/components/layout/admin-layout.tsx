@@ -73,9 +73,9 @@ export function AdminLayout({ children }: { children: ReactNode }) {
           <Link key={item.href} href={item.href} onClick={() => setSidebarOpen(false)}>
             <span
               className={cn(
-                "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors cursor-pointer",
+                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors cursor-pointer min-h-[40px]",
                 isActive(item.href, item.exact)
-                  ? "bg-primary text-primary-foreground font-medium"
+                  ? "bg-primary text-primary-foreground font-semibold shadow-sm"
                   : "text-muted-foreground hover:bg-muted hover:text-foreground"
               )}
             >

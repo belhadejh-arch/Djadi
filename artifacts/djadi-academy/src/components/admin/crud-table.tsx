@@ -73,13 +73,13 @@ export function CrudTable<T extends { id: number }>({
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow>
+                <TableRow className="bg-muted/40 hover:bg-muted/40">
                   {columns.map((col, i) => (
                     <TableHead key={i} className={col.className}>
                       {col.header}
                     </TableHead>
                   ))}
-                  <TableHead className="w-24 text-left">إجراءات</TableHead>
+                  <TableHead className="w-28">إجراءات</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -107,21 +107,23 @@ export function CrudTable<T extends { id: number }>({
                         </TableCell>
                       ))}
                       <TableCell>
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1.5">
                           {extraActions?.(row)}
                           <Button
                             variant="ghost" size="icon"
-                            className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                            className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10"
                             onClick={() => onEdit(row)}
+                            title="تعديل"
                           >
-                            <Pencil className="h-3.5 w-3.5" />
+                            <Pencil className="h-4 w-4" />
                           </Button>
                           <Button
                             variant="ghost" size="icon"
-                            className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                            className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                             onClick={() => setDeleteId(row.id)}
+                            title="حذف"
                           >
-                            <Trash2 className="h-3.5 w-3.5" />
+                            <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
                       </TableCell>
