@@ -7,6 +7,7 @@
  */
 
 export * from './authResponse';
+export * from './branch';
 export * from './dashboardSummary';
 export * from './errorResponse';
 export * from './gradeInput';
@@ -14,7 +15,10 @@ export * from './gradeInputGrade';
 export * from './healthStatus';
 export * from './lesson';
 export * from './lessonType';
+export * from './level';
+export * from './listBranchesParams';
 export * from './listLessonsParams';
+export * from './listSubjectsParams';
 export * from './loginInput';
 export * from './registerInput';
 export * from './subject';

@@ -106,8 +106,46 @@ export const UpdateGradeResponse = zod.object({
 
 
 /**
- * @summary List subjects for the current user's grade
+ * @summary List all grade levels
  */
+export const ListLevelsResponseItem = zod.object({
+  "id": zod.number(),
+  "nameAr": zod.string(),
+  "nameFr": zod.string(),
+  "code": zod.string().describe('premiere | deuxieme | troisieme'),
+  "sortOrder": zod.number(),
+  "createdAt": zod.coerce.date().optional()
+})
+export const ListLevelsResponse = zod.array(ListLevelsResponseItem)
+
+
+/**
+ * @summary List branches, optionally filtered by level code
+ */
+export const ListBranchesQueryParams = zod.object({
+  "levelCode": zod.coerce.string().optional()
+})
+
+export const ListBranchesResponseItem = zod.object({
+  "id": zod.number(),
+  "nameAr": zod.string(),
+  "nameFr": zod.string(),
+  "code": zod.string(),
+  "levelId": zod.number().optional(),
+  "levelIds": zod.array(zod.number()),
+  "sortOrder": zod.number(),
+  "createdAt": zod.coerce.date().optional()
+})
+export const ListBranchesResponse = zod.array(ListBranchesResponseItem)
+
+
+/**
+ * @summary List subjects for the current user's grade, optionally filtered by branch
+ */
+export const ListSubjectsQueryParams = zod.object({
+  "branchId": zod.coerce.number().optional()
+})
+
 export const ListSubjectsResponseItem = zod.object({
   "id": zod.number(),
   "name": zod.string(),

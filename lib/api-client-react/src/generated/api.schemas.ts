@@ -60,6 +60,27 @@ export interface AuthResponse {
   user: User;
 }
 
+export interface Level {
+  id: number;
+  nameAr: string;
+  nameFr: string;
+  /** premiere | deuxieme | troisieme */
+  code: string;
+  sortOrder: number;
+  createdAt?: string;
+}
+
+export interface Branch {
+  id: number;
+  nameAr: string;
+  nameFr: string;
+  code: string;
+  levelId?: number;
+  levelIds: number[];
+  sortOrder: number;
+  createdAt?: string;
+}
+
 export interface Subject {
   id: number;
   name: string;
@@ -112,6 +133,14 @@ export interface DashboardSummary {
   recentLessons: Lesson[];
   subjectProgress: SubjectProgress[];
 }
+
+export type ListBranchesParams = {
+levelCode?: string;
+};
+
+export type ListSubjectsParams = {
+branchId?: number;
+};
 
 export type ListLessonsParams = {
 subjectId?: number;

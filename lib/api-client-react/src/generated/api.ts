@@ -21,12 +21,16 @@ import type {
 
 import type {
   AuthResponse,
+  Branch,
   DashboardSummary,
   ErrorResponse,
   GradeInput,
   HealthStatus,
   Lesson,
+  Level,
+  ListBranchesParams,
   ListLessonsParams,
+  ListSubjectsParams,
   LoginInput,
   RegisterInput,
   Subject,
@@ -499,20 +503,20 @@ export const useUpdateGrade = <TError = ErrorType<ErrorResponse>,
       return useMutation(getUpdateGradeMutationOptions(options));
     }
 
-export const getListSubjectsUrl = () => {
+export const getListLevelsUrl = () => {
 
 
 
 
-  return `/api/subjects`
+  return `/api/levels`
 }
 
 /**
- * @summary List subjects for the current user's grade
+ * @summary List all grade levels
  */
-export const listSubjects = async ( options?: Parameters<typeof customFetch>[1]): Promise<Subject[]> => {
+export const listLevels = async ( options?: Parameters<typeof customFetch>[1]): Promise<Level[]> => {
 
-  return customFetch<Subject[]>(getListSubjectsUrl(),
+  return customFetch<Level[]>(getListLevelsUrl(),
   {
     ...options,
     method: 'GET'
@@ -525,23 +529,191 @@ export const listSubjects = async ( options?: Parameters<typeof customFetch>[1])
 
 
 
-export const getListSubjectsQueryKey = () => {
+export const getListLevelsQueryKey = () => {
     return [
-    `/api/subjects`
+    `/api/levels`
     ] as const;
     }
 
 
-export const getListSubjectsQueryOptions = <TData = Awaited<ReturnType<typeof listSubjects>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listSubjects>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+export const getListLevelsQueryOptions = <TData = Awaited<ReturnType<typeof listLevels>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listLevels>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getListSubjectsQueryKey();
+  const queryKey =  queryOptions?.queryKey ?? getListLevelsQueryKey();
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listSubjects>>> = ({ signal }) => listSubjects({ signal, ...requestOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listLevels>>> = ({ signal }) => listLevels({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listLevels>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListLevelsQueryResult = NonNullable<Awaited<ReturnType<typeof listLevels>>>
+export type ListLevelsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List all grade levels
+ */
+
+export function useListLevels<TData = Awaited<ReturnType<typeof listLevels>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listLevels>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListLevelsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListBranchesUrl = (params?: ListBranchesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/branches?${stringifiedParams}` : `/api/branches`
+}
+
+/**
+ * @summary List branches, optionally filtered by level code
+ */
+export const listBranches = async (params?: ListBranchesParams, options?: Parameters<typeof customFetch>[1]): Promise<Branch[]> => {
+
+  return customFetch<Branch[]>(getListBranchesUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListBranchesQueryKey = (params?: ListBranchesParams,) => {
+    return [
+    `/api/branches`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListBranchesQueryOptions = <TData = Awaited<ReturnType<typeof listBranches>>, TError = ErrorType<unknown>>(params?: ListBranchesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listBranches>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListBranchesQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listBranches>>> = ({ signal }) => listBranches(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listBranches>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListBranchesQueryResult = NonNullable<Awaited<ReturnType<typeof listBranches>>>
+export type ListBranchesQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List branches, optionally filtered by level code
+ */
+
+export function useListBranches<TData = Awaited<ReturnType<typeof listBranches>>, TError = ErrorType<unknown>>(
+ params?: ListBranchesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listBranches>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListBranchesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListSubjectsUrl = (params?: ListSubjectsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/subjects?${stringifiedParams}` : `/api/subjects`
+}
+
+/**
+ * @summary List subjects for the current user's grade, optionally filtered by branch
+ */
+export const listSubjects = async (params?: ListSubjectsParams, options?: Parameters<typeof customFetch>[1]): Promise<Subject[]> => {
+
+  return customFetch<Subject[]>(getListSubjectsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListSubjectsQueryKey = (params?: ListSubjectsParams,) => {
+    return [
+    `/api/subjects`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListSubjectsQueryOptions = <TData = Awaited<ReturnType<typeof listSubjects>>, TError = ErrorType<unknown>>(params?: ListSubjectsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listSubjects>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListSubjectsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listSubjects>>> = ({ signal }) => listSubjects(params, { signal, ...requestOptions });
 
 
 
@@ -555,15 +727,15 @@ export type ListSubjectsQueryError = ErrorType<unknown>
 
 
 /**
- * @summary List subjects for the current user's grade
+ * @summary List subjects for the current user's grade, optionally filtered by branch
  */
 
 export function useListSubjects<TData = Awaited<ReturnType<typeof listSubjects>>, TError = ErrorType<unknown>>(
-  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listSubjects>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+ params?: ListSubjectsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listSubjects>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
 
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
-  const queryOptions = getListSubjectsQueryOptions(options)
+  const queryOptions = getListSubjectsQueryOptions(params,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

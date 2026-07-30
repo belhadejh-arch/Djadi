@@ -1,5 +1,5 @@
 import { Router, type IRouter, type Request, type Response } from "express";
-import { eq } from "drizzle-orm";
+import { and, eq, isNull, or } from "drizzle-orm";
 import { db, subjectsTable, sessionsTable, usersTable } from "@workspace/db";
 import { GetSubjectParams } from "@workspace/api-zod";
 
@@ -27,10 +27,27 @@ async function getUserGrade(req: Request): Promise<string | null> {
 
 router.get("/subjects", async (req: Request, res: Response): Promise<void> => {
   const grade = await getUserGrade(req);
+  const branchIdParam = req.query.branchId;
+  const branchId =
+    branchIdParam !== undefined && !isNaN(parseInt(String(branchIdParam)))
+      ? parseInt(String(branchIdParam))
+      : null;
 
-  const subjects = grade
-    ? await db.select().from(subjectsTable).where(eq(subjectsTable.grade, grade))
-    : await db.select().from(subjectsTable);
+  const conditions = [];
+  if (grade) conditions.push(eq(subjectsTable.grade, grade));
+  if (branchId !== null) {
+    conditions.push(
+      or(isNull(subjectsTable.branchId), eq(subjectsTable.branchId, branchId))!
+    );
+  }
+
+  const subjects =
+    conditions.length > 0
+      ? await db
+          .select()
+          .from(subjectsTable)
+          .where(and(...conditions))
+      : await db.select().from(subjectsTable);
 
   res.json(subjects.map((s) => ({
     id: s.id,
