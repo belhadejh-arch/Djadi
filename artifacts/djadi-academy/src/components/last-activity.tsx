@@ -1,27 +1,50 @@
 /**
- * LastActivity — shows the most recent lesson views for the current user
+ * LastActivity — shows the last viewed item per content type
+ * (lesson / exam / test / homework) with a "Continue Studying" button.
  * Displayed as a card on the student dashboard.
  */
 import { useQuery } from "@tanstack/react-query";
-import { Clock, BookOpen, ChevronLeft } from "lucide-react";
+import { Clock, BookOpen, FileText, PenLine, Home, ArrowLeft, PlayCircle } from "lucide-react";
 import { Link } from "wouter";
 import { useLang } from "@/lib/language-context";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 
 const BASE_URL = import.meta.env.BASE_URL?.replace(/\/$/, "") || "";
 
-function useRecentActivity(limit = 5) {
+export type ContentType = "lesson" | "exam" | "test" | "homework";
+
+const TYPE_META: Record<ContentType, {
+  icon: React.ElementType;
+  labelAr: string;
+  labelFr: string;
+  labelEn: string;
+  color: string;
+  bg: string;
+}> = {
+  lesson:   { icon: BookOpen, labelAr: "آخر درس",           labelFr: "Dernier cours",   labelEn: "Last Lesson",   color: "text-blue-600 dark:text-blue-400",    bg: "bg-blue-100 dark:bg-blue-900/30" },
+  exam:     { icon: FileText, labelAr: "آخر فرض",           labelFr: "Dernier examen",  labelEn: "Last Exam",     color: "text-purple-600 dark:text-purple-400", bg: "bg-purple-100 dark:bg-purple-900/30" },
+  test:     { icon: PenLine,  labelAr: "آخر اختبار",        labelFr: "Dernier test",    labelEn: "Last Test",     color: "text-amber-600 dark:text-amber-400",   bg: "bg-amber-100 dark:bg-amber-900/30" },
+  homework: { icon: Home,     labelAr: "آخر واجب منزلي",   labelFr: "Dernier devoir",  labelEn: "Last Homework", color: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-100 dark:bg-emerald-900/30" },
+};
+
+function useLastActivity() {
   return useQuery({
-    queryKey: ["activity", "recent", limit],
+    queryKey: ["activity", "recent"],
     queryFn: async () => {
-      const res = await fetch(`${BASE_URL}/api/activity/recent?limit=${limit}`, {
-        credentials: "include",
-      });
+      const res = await fetch(`${BASE_URL}/api/activity/recent`, { credentials: "include" });
       if (!res.ok) return [];
       return res.json() as Promise<any[]>;
     },
     staleTime: 30 * 1000,
   });
+}
+
+function getItemHref(act: any): string {
+  const type: ContentType = act.contentType ?? "lesson";
+  if (type === "lesson") return `/lessons/${act.lessonId ?? act.contentId}`;
+  // For exams/tests/homework, return to the subject if we don't have a direct route
+  return `/subjects`;
 }
 
 function timeAgo(dateStr: string, lang: string): string {
@@ -51,51 +74,73 @@ function timeAgo(dateStr: string, lang: string): string {
 
 export function LastActivity() {
   const { t, lang } = useLang();
-  const { data: activities = [], isLoading } = useRecentActivity(5);
+  const { data: activities = [], isLoading } = useLastActivity();
 
   if (isLoading) {
     return (
       <div className="space-y-3">
-        <h3 className="font-bold text-base flex items-center gap-2">
-          <Clock className="w-4 h-4 text-primary" />
-          {t("آخر نشاط", "Dernière activité", "Last Activity")}
-        </h3>
-        {Array.from({ length: 3 }).map((_, i) => (
-          <Skeleton key={i} className="h-14 w-full rounded-xl" />
-        ))}
+        <Skeleton className="h-5 w-32" />
+        <div className="space-y-2">
+          {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-16 w-full rounded-2xl" />)}
+        </div>
+        <Skeleton className="h-10 w-full rounded-xl" />
       </div>
     );
   }
 
   if (activities.length === 0) return null;
 
+  // Most recent item overall → used for the "Continue" button
+  const mostRecent = activities.reduce((prev: any, curr: any) =>
+    new Date(curr.viewedAt) > new Date(prev.viewedAt) ? curr : prev
+  );
+
   return (
-    <div className="space-y-3">
+    <div className="space-y-3" dir="rtl">
+      {/* Header */}
       <h3 className="font-bold text-base flex items-center gap-2">
         <Clock className="w-4 h-4 text-primary" />
         {t("آخر نشاط", "Dernière activité", "Last Activity")}
       </h3>
+
+      {/* One card per content type */}
       <div className="space-y-2">
-        {activities.map((act: any) => (
-          <Link key={act.id} href={`/lessons/${act.lessonId}`}>
-            <div className="bg-card border border-border hover:border-primary/30 hover:shadow-sm rounded-xl p-3 flex items-center gap-3 transition-all group cursor-pointer">
-              <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center shrink-0">
-                <BookOpen className="w-5 h-5 text-primary" />
+        {activities.map((act: any) => {
+          const type: ContentType = act.contentType ?? "lesson";
+          const meta = TYPE_META[type] ?? TYPE_META.lesson;
+          const Icon = meta.icon;
+          const href = getItemHref(act);
+
+          return (
+            <Link key={act.id} href={href}>
+              <div className="bg-card border border-border hover:border-primary/30 hover:shadow-sm rounded-2xl p-3 flex items-center gap-3 transition-all group cursor-pointer">
+                <div className={`w-10 h-10 ${meta.bg} rounded-xl flex items-center justify-center shrink-0`}>
+                  <Icon className={`w-5 h-5 ${meta.color}`} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[11px] font-bold text-muted-foreground mb-0.5">{t(meta.labelAr, meta.labelFr, meta.labelEn)}</p>
+                  <p className="font-semibold text-sm truncate group-hover:text-primary transition-colors">
+                    {act.lessonTitle ?? t("عنصر", "Élément", "Item")}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {act.subjectName && <span className="font-medium">{act.subjectName} · </span>}
+                    {timeAgo(act.viewedAt, lang)}
+                  </p>
+                </div>
+                <ArrowLeft className="w-4 h-4 text-muted-foreground shrink-0 group-hover:text-primary transition-colors" />
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-semibold text-sm truncate group-hover:text-primary transition-colors">
-                  {act.lessonTitle ?? t("درس", "Cours", "Lesson")}
-                </p>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  {act.subjectName && <span className="font-medium">{act.subjectName} · </span>}
-                  {timeAgo(act.viewedAt, lang)}
-                </p>
-              </div>
-              <ChevronLeft className="w-4 h-4 text-muted-foreground shrink-0 group-hover:text-primary transition-colors" />
-            </div>
-          </Link>
-        ))}
+            </Link>
+          );
+        })}
       </div>
+
+      {/* Continue Studying button */}
+      <Link href={getItemHref(mostRecent)}>
+        <Button className="w-full gap-2 rounded-xl h-11 font-bold text-sm" variant="default">
+          <PlayCircle className="w-4 h-4" />
+          {t("متابعة الدراسة", "Continuer à étudier", "Continue Studying")}
+        </Button>
+      </Link>
     </div>
   );
 }

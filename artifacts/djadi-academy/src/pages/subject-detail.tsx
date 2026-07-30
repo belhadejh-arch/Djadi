@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useParams, Link, useLocation } from "wouter";
 import { useGetSubject, useListLessons, useGetMe } from "@workspace/api-client-react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import {
   BookOpen, FileText, PlayCircle, ChevronRight, GraduationCap,
@@ -181,9 +181,37 @@ export default function SubjectDetail() {
   const filteredTests    = (testItems ?? []).filter((i: any) => !i.semester || String(i.semester) === activeSemester);
   const filteredHomework = (homeworkItems ?? []).filter((i: any) => !i.semester || String(i.semester) === activeSemester);
 
+  // Record activity when student opens a content item (exam / test / homework)
+  const recordActivity = useMutation({
+    mutationFn: async (body: { contentType: string; contentId: number; contentTitle?: string; subjectName?: string }) => {
+      await fetch(`${BASE_URL}/api/activity`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+    },
+  });
+
+  const TAB_TO_CONTENT_TYPE: Record<ContentTab, string> = {
+    lessons:     "lesson",
+    assignments: "exam",
+    exams:       "test",
+    homework:    "homework",
+  };
+
   const openPdf = (item: any) => {
     if (item.link) {
       setPdfViewer({ url: item.link, title: item.titleAr || item.title });
+      const contentType = TAB_TO_CONTENT_TYPE[activeTab] ?? "exam";
+      if (contentType !== "lesson") {
+        recordActivity.mutate({
+          contentType,
+          contentId: item.id,
+          contentTitle: item.titleAr || item.title,
+          subjectName: subject?.nameAr ?? subject?.nameFr ?? undefined,
+        });
+      }
     }
   };
 

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import {
   Lock, Globe, Moon, Sun, Bell, BellOff, GraduationCap,
-  Info, Shield, LogOut, ChevronLeft, Eye, EyeOff, X, Check,
+  Info, Shield, LogOut, ChevronLeft, Eye, EyeOff, X, Check, Heart,
 } from "lucide-react";
 import { useTheme } from "@/components/theme-provider";
 import { useLang } from "@/lib/language-context";
@@ -333,6 +333,23 @@ export default function Settings() {
                 onClick={(e) => e.stopPropagation()}
               />
             }
+          />
+        </div>
+      </div>
+
+      {/* Section: المفضلة */}
+      <div>
+        <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider px-1 mb-2">
+          {t("المفضلة", "Favoris", "Favorites")}
+        </p>
+        <div className="bg-card rounded-2xl border border-border overflow-hidden shadow-sm">
+          <SettingsRow
+            icon={Heart}
+            iconBg="#fff1f2"
+            iconColor="#e11d48"
+            label={t("محفوظاتي", "Mes favoris", "My Favorites")}
+            sublabel={t("دروسي · فروضي · اختباراتي · واجباتي", "Cours · Épreuves · Tests · Devoirs", "Lessons · Exams · Tests · Homework")}
+            onClick={() => navigate("/favorites")}
           />
         </div>
       </div>
