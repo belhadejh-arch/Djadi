@@ -16,6 +16,7 @@ import dashboardRouter from "./dashboard";
 import backupRouter from "./backup";
 import auditLogsRouter from "./audit-logs";
 import homeworkRouter from "./homework";
+import statsRouter from "./stats";
 
 const router: IRouter = Router();
 
@@ -38,5 +39,6 @@ router.use("/announcements", announcementsRouter);
 router.use("/notifications", notificationsRouter);
 router.use("/language-settings", languageSettingsRouter);
 router.use("/homework", homeworkRouter);
+router.use("/stats", statsRouter);
 
 export default router;

@@ -146,6 +146,9 @@ export const adminApi = {
     delete: (id: number) => request<any>("DELETE", `/homework/${id}`),
   },
   // Dashboard
+  stats: {
+    get: () => request<any>("GET", "/stats"),
+  },
   dashboard: {
     stats: () => request<any>("GET", "/dashboard/stats"),
   },

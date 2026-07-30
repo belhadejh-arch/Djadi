@@ -5,7 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import {
   Users, BookOpen, GraduationCap, GitBranch, FileText,
   ScrollText, FlaskConical, Award, Youtube, Megaphone,
-  Bell, Globe, LogOut, Menu, X, LayoutDashboard, ChevronRight, Database, ShieldCheck,
+  Bell, Globe, LogOut, Menu, X, LayoutDashboard, ChevronRight, Database, ShieldCheck, BarChart2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -13,6 +13,7 @@ import logoUrl from "@assets/IMG_0796_1785328682791.png";
 
 const navItems = [
   { href: "/admin", label: "لوحة التحكم", icon: LayoutDashboard, exact: true },
+  { href: "/admin/stats", label: "الإحصائيات", icon: BarChart2 },
   { href: "/admin/users", label: "المستخدمون", icon: Users },
   { href: "/admin/levels", label: "المستويات", icon: GraduationCap },
   { href: "/admin/branches", label: "الشعب", icon: GitBranch },

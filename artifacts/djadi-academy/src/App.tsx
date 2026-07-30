@@ -54,6 +54,7 @@ const AdminLanguageSettings = lazy(() => import('@/pages/admin/language-settings
 const AdminBackup         = lazy(() => import('@/pages/admin/backup'));
 const AdminAuditLogs      = lazy(() => import('@/pages/admin/audit-logs'));
 const AdminHomework       = lazy(() => import('@/pages/admin/homework'));
+const AdminStats          = lazy(() => import('@/pages/admin/stats'));
 
 // ── Query client (performance tuned) ───────────────────────────────────────
 const queryClient = new QueryClient({
@@ -222,6 +223,9 @@ function Router() {
         </Route>
         <Route path="/admin/homework">
           <AdminRoute><AdminHomework /></AdminRoute>
+        </Route>
+        <Route path="/admin/stats">
+          <AdminRoute><AdminStats /></AdminRoute>
         </Route>
         <Route path="/favorites">
           <ProtectedRoute><Favorites /></ProtectedRoute>
