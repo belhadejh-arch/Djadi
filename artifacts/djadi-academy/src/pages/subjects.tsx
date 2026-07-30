@@ -41,20 +41,24 @@ export default function Subjects() {
   }
 
   // Resolve third-language placeholder if applicable
-  const subjects: (SubjectDef & { linkTo: string })[] = branch.subjects.map(
+  const allSubjects: (SubjectDef & { linkTo: string })[] = branch.subjects.map(
     (s) => {
       if (s.isThirdLanguagePlaceholder) {
         if (thirdLanguage) {
-          // Replace placeholder with the resolved language subject
           const resolved = THIRD_LANGUAGE_SUBJECTS[thirdLanguage];
           return { ...resolved, linkTo: `/subjects/${resolved.id}` };
         }
-        // Show placeholder linking to language picker
         return { ...s, linkTo: "/language-select" };
       }
       return { ...s, linkTo: `/subjects/${s.id}` };
     }
   );
+
+  // For Year 1 and Year 2, only show Math (platform content is available per subject)
+  const subjects =
+    grade === "premiere" || grade === "deuxieme"
+      ? allSubjects.filter((s) => s.id === "math")
+      : allSubjects;
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500" dir="rtl">

@@ -1,16 +1,43 @@
 import { useGetMe, useGetDashboardSummary } from "@workspace/api-client-react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { BookOpen, Video, FileText, CheckCircle2, PlayCircle, Clock, BookMarked } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { BookOpen, Video, FileText, CheckCircle2, PlayCircle, Clock, Languages } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Progress } from "@/components/ui/progress";
-import { Button } from "@/components/ui/button";
 import { LastActivity } from "@/components/last-activity";
+import { useBranch } from "@/lib/use-branch";
+import {
+  getBranchById,
+  THIRD_LANGUAGE_SUBJECTS,
+  type GradeId,
+  type SubjectDef,
+} from "@/lib/branch-data";
 
 export default function Dashboard() {
+  const [, setLocation] = useLocation();
   const { data: user } = useGetMe();
   const { data: summary, isLoading } = useGetDashboardSummary();
+
+  const grade = user?.grade as GradeId | undefined;
+  const { branchId, thirdLanguage } = useBranch(user?.id, grade);
+  const branch = branchId ? getBranchById(branchId) : undefined;
+
+  // Resolve subjects for the branch, filtered by grade
+  const allSubjects: (SubjectDef & { linkTo: string })[] = (branch?.subjects ?? []).map((s) => {
+    if (s.isThirdLanguagePlaceholder) {
+      if (thirdLanguage) {
+        const resolved = THIRD_LANGUAGE_SUBJECTS[thirdLanguage];
+        return { ...resolved, linkTo: `/subjects/${resolved.id}` };
+      }
+      return { ...s, linkTo: "/language-select" };
+    }
+    return { ...s, linkTo: `/subjects/${s.id}` };
+  });
+
+  const displaySubjects =
+    grade === "premiere" || grade === "deuxieme"
+      ? allSubjects.filter((s) => s.id === "math")
+      : allSubjects;
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -90,41 +117,78 @@ export default function Dashboard() {
       </section>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Subject Progress */}
+        {/* Subjects Grid — square cards */}
         <section className="lg:col-span-2 space-y-3">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold">تقدمك في المواد</h2>
-            <Link href="/subjects" className="text-primary text-sm font-semibold hover:underline">عرض الكل</Link>
+            <h2 className="text-lg font-bold">المواد الدراسية</h2>
+            {branch && (
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground bg-muted px-2.5 py-1 rounded-full font-sans" dir="ltr">
+                  {branch.nameFr}
+                </span>
+                <button
+                  onClick={() => setLocation("/branch-select")}
+                  className="text-primary text-xs font-semibold hover:underline"
+                >
+                  تغيير
+                </button>
+              </div>
+            )}
           </div>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-            {isLoading ? (
-              Array.from({ length: 4 }).map((_, i) => (
-                <Card key={i} className="p-4 space-y-3">
-                  <Skeleton className="h-5 w-1/2" />
-                  <Skeleton className="h-2 w-full" />
-                  <Skeleton className="h-4 w-1/3" />
-                </Card>
-              ))
-            ) : summary?.subjectProgress?.map((subject) => (
-              <Link key={subject.subjectId} href={`/subjects/${subject.subjectId}`}>
-                <Card className="p-3.5 border-none shadow-sm hover-elevate transition-all cursor-pointer group">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-9 h-9 rounded-lg flex items-center justify-center text-white shrink-0" style={{ backgroundColor: subject.color }}>
-                        <BookMarked className="w-4 h-4" />
+
+          {!branch ? (
+            <div className="bg-card rounded-2xl border-2 border-dashed border-border/50 p-8 text-center" dir="rtl">
+              <p className="text-muted-foreground mb-3">لم يتم اختيار شعبة بعد</p>
+              <button
+                onClick={() => setLocation("/branch-select")}
+                className="text-primary font-semibold hover:underline text-sm"
+              >
+                اختر شعبتك الآن
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2.5">
+              {displaySubjects.map((subject, index) => {
+                const Icon = subject.icon;
+                const isThirdLangPicker = subject.isThirdLanguagePlaceholder && !thirdLanguage;
+                return (
+                  <motion.div
+                    key={subject.id}
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.04, duration: 0.3 }}
+                  >
+                    <Link href={subject.linkTo}>
+                      <div
+                        className={`flex flex-col items-center justify-center rounded-2xl border-2 bg-card transition-all cursor-pointer group
+                          h-24 sm:h-28 p-2 sm:p-3 text-center
+                          ${isThirdLangPicker
+                            ? "border-dashed border-pink-300 dark:border-pink-800 hover:border-pink-500"
+                            : "border-border hover:border-primary/50 hover:shadow-md"
+                          }`}
+                      >
+                        <div
+                          className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-white mb-1.5 sm:mb-2 shadow-sm group-hover:scale-110 transition-transform duration-200"
+                          style={{ backgroundColor: subject.color }}
+                        >
+                          <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
+                        </div>
+                        <p className="text-[11px] sm:text-xs font-bold leading-tight text-center group-hover:text-primary transition-colors line-clamp-2">
+                          {subject.nameAr}
+                        </p>
+                        {isThirdLangPicker && (
+                          <span className="text-[10px] text-pink-500 font-medium mt-1 flex items-center gap-1">
+                            <Languages className="w-3 h-3" />
+                            اختر اللغة
+                          </span>
+                        )}
                       </div>
-                      <div>
-                        <h3 className="font-bold text-sm group-hover:text-primary transition-colors">{subject.subjectNameAr}</h3>
-                        <p className="text-xs text-muted-foreground font-sans" dir="ltr">{subject.subjectName}</p>
-                      </div>
-                    </div>
-                    <span className="font-bold text-base shrink-0">{subject.lessonCount} <span className="text-xs font-normal text-muted-foreground">درس</span></span>
-                  </div>
-                </Card>
-              </Link>
-            ))}
-          </div>
+                    </Link>
+                  </motion.div>
+                );
+              })}
+            </div>
+          )}
         </section>
 
         {/* Right column: Last Activity + Recent Lessons */}
