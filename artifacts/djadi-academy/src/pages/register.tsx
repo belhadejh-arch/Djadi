@@ -44,11 +44,18 @@ export default function Register() {
           queryClient.invalidateQueries({ queryKey: getGetMeQueryKey() });
           setLocation("/grade-select");
         },
-        onError: () => {
+        onError: (err: unknown) => {
+          const msg =
+            (err as { data?: { error?: string } })?.data?.error ??
+            (err as { message?: string })?.message ??
+            "تعذّر الاتصال بالسيرفر";
+          const isEmailTaken = msg.toLowerCase().includes("already") || msg.includes("مستخدم");
           toast({
             variant: "destructive",
             title: "خطأ في إنشاء الحساب",
-            description: "البريد الإلكتروني قد يكون مستخدماً بالفعل",
+            description: isEmailTaken
+              ? "هذا البريد الإلكتروني مستخدم بالفعل"
+              : msg,
           });
         },
       }

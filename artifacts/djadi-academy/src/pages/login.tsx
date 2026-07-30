@@ -46,11 +46,19 @@ export default function Login() {
             setLocation("/dashboard");
           }
         },
-        onError: () => {
+        onError: (err: unknown) => {
+          const msg =
+            (err as { data?: { error?: string } })?.data?.error ??
+            (err as { message?: string })?.message ??
+            "تعذّر الاتصال بالسيرفر";
+          const isBadCreds =
+            msg.toLowerCase().includes("invalid") || msg.includes("بيانات");
           toast({
             variant: "destructive",
             title: "خطأ في تسجيل الدخول",
-            description: "تأكد من صحة البريد الإلكتروني وكلمة المرور",
+            description: isBadCreds
+              ? "البريد الإلكتروني أو كلمة المرور غير صحيحة"
+              : msg,
           });
         },
       }
