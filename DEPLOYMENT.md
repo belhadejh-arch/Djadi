@@ -26,8 +26,12 @@
 |---|---|
 | `DATABASE_URL` | رابط قاعدة بيانات Neon (نفس الرابط المستخدم حاليًا) |
 | `NODE_ENV` | `production` |
+| `FRONTEND_URL` | `https://ss-woad.vercel.app` |
+| `ADMIN_EMAIL` | بريد حساب الأدمن (يُنشأ تلقائياً عند أول تشغيل) |
+| `ADMIN_PASSWORD` | كلمة مرور حساب الأدمن |
 
 > ملاحظة: Render يوفّر `PORT` تلقائيًا — السيرفر يقرأه بالفعل.
+> `ADMIN_EMAIL` + `ADMIN_PASSWORD` ينشئان حساب super_admin تلقائياً عند بدء السيرفر إن لم يوجد أدمن.
 
 ### تهيئة جداول قاعدة البيانات (مرة واحدة)
 
@@ -58,13 +62,13 @@ DATABASE_URL="<رابط Neon>" pnpm --filter @workspace/db run push
 ```json
 {
   "rewrites": [
-    { "source": "/api/:path*", "destination": "https://YOUR-RENDER-SERVICE.onrender.com/api/:path*" },
+    { "source": "/api/:path*", "destination": "https://djadiapp.onrender.com/api/:path*" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
 ```
 
-**مهم:** بعد إنشاء خدمة Render، استبدل `YOUR-RENDER-SERVICE.onrender.com` برابط خدمتك الفعلي ثم أعد النشر على Vercel.
+الرابط الفعلي `https://djadiapp.onrender.com` مُضبوط بالفعل في `artifacts/djadi-academy/vercel.json`.
 
 > هذا الأسلوب (proxy عبر Vercel) يجعل الكوكيز تعمل بشكل صحيح لأن المتصفح يتعامل مع نطاق واحد فقط — لا حاجة لأي تعديل على CORS أو الكوكيز.
 

@@ -38,7 +38,7 @@ description: Key decisions and structure from the complete platform overhaul + a
 
 **OpenAPI User schema** — added `role: string` field to the `User` schema in `lib/api-spec/openapi.yaml`. Regenerate with `pnpm --filter @workspace/api-spec run codegen` after any spec change.
 
-**Vercel deployment** — `artifacts/djadi-academy/vercel.json` must have the real Render URL (not `YOUR-RENDER-URL`). The rewrite proxies `/api/*` to Render so cookies stay same-origin. This is the PRIMARY reason registration/login fail on Vercel.
+**Vercel deployment** — `artifacts/djadi-academy/vercel.json` proxies `/api/*` → `https://djadiapp.onrender.com/api/*`. This keeps cookies same-origin on Vercel. Render service URL: `https://djadiapp.onrender.com`. Vercel frontend: `https://ss-woad.vercel.app`.
 
 **CORS** — `artifacts/api-server/src/app.ts` supports comma-separated `FRONTEND_URL` for multiple allowed origins. Set `FRONTEND_URL=https://your-vercel-app.vercel.app` on Render.
 
