@@ -56,13 +56,22 @@ export default function AdminBackup() {
     onError: (e: any) => toast({ title: "خطأ", description: e.message, variant: "destructive" }),
   });
 
-  const handleDownload = (id: string) => {
-    const link = document.createElement("a");
-    link.href = adminApi.backup.downloadUrl(id);
-    link.download = `${id}.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const handleDownload = async (id: string) => {
+    try {
+      const res = await fetch(adminApi.backup.downloadUrl(id), { credentials: "include" });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const blob = await res.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = objectUrl;
+      link.download = `${id}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(objectUrl);
+    } catch (e: any) {
+      toast({ title: "خطأ في التنزيل", description: e.message, variant: "destructive" });
+    }
   };
 
   const handleRestoreFromFile = async (e: React.ChangeEvent<HTMLInputElement>) => {

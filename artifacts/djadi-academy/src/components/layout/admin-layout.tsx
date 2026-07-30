@@ -5,7 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import {
   Users, BookOpen, GraduationCap, GitBranch, FileText,
   ScrollText, FlaskConical, Award, Youtube, Megaphone,
-  Bell, Globe, LogOut, Menu, LayoutDashboard, ChevronRight,
+  Bell, LogOut, Menu, LayoutDashboard, ChevronRight,
   Database, ShieldCheck, BarChart2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -37,7 +37,6 @@ export function AdminLayout({ children }: { children: ReactNode }) {
     { href: "/admin/review-channels",  label: tk("admin.reviewChannels"),  icon: Youtube },
     { href: "/admin/announcements",    label: tk("admin.announcements"),   icon: Megaphone },
     { href: "/admin/notifications",    label: tk("admin.notifications"),   icon: Bell },
-    { href: "/admin/language-settings",label: tk("admin.langSettings"),    icon: Globe },
     { href: "/admin/backup",           label: tk("admin.backup"),          icon: Database },
     { href: "/admin/audit-logs",       label: tk("admin.auditLogs"),       icon: ShieldCheck },
   ];

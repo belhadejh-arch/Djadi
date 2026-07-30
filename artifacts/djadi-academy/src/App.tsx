@@ -50,7 +50,6 @@ const AdminBaccalaureates = lazy(() => import('@/pages/admin/baccalaureates'));
 const AdminReviewChannels = lazy(() => import('@/pages/admin/review-channels'));
 const AdminAnnouncements  = lazy(() => import('@/pages/admin/announcements'));
 const AdminNotifications  = lazy(() => import('@/pages/admin/notifications'));
-const AdminLanguageSettings = lazy(() => import('@/pages/admin/language-settings'));
 const AdminBackup         = lazy(() => import('@/pages/admin/backup'));
 const AdminAuditLogs      = lazy(() => import('@/pages/admin/audit-logs'));
 const AdminHomework       = lazy(() => import('@/pages/admin/homework'));
@@ -216,9 +215,6 @@ function Router() {
         </Route>
         <Route path="/admin/notifications">
           <AdminRoute><AdminNotifications /></AdminRoute>
-        </Route>
-        <Route path="/admin/language-settings">
-          <AdminRoute><AdminLanguageSettings /></AdminRoute>
         </Route>
         <Route path="/admin/backup">
           <AdminRoute><AdminBackup /></AdminRoute>
