@@ -51,6 +51,9 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
     if (isAuthError || (!effectiveUser)) {
       clearUserCache();
       setLocation("/login");
+    } else if (effectiveUser?.role === "super_admin") {
+      // Admin users go directly to /admin — skip grade/branch checks
+      setLocation("/admin");
     } else if (effectiveUser && !effectiveUser.grade && location !== "/grade-select") {
       setLocation("/grade-select");
     } else if (

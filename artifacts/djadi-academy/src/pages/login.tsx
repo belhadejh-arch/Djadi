@@ -40,7 +40,9 @@ export default function Login() {
         onSuccess: (res: any) => {
           cacheUser(res.user);
           queryClient.invalidateQueries({ queryKey: getGetMeQueryKey() });
-          if (!res.user.grade) {
+          if (res.user.role === "super_admin") {
+            setLocation("/admin");
+          } else if (!res.user.grade) {
             setLocation("/grade-select");
           } else {
             setLocation("/dashboard");
