@@ -8,19 +8,21 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { PdfViewer } from "@/components/pdf-viewer";
 import { useToast } from "@/hooks/use-toast";
 
-const GRADES = ["premiere", "deuxieme", "troisieme"];
-
-// Range of selectable years (most recent first)
 const CURRENT_YEAR = new Date().getFullYear();
 const YEAR_OPTIONS = Array.from({ length: CURRENT_YEAR - 2009 }, (_, i) => CURRENT_YEAR - i);
 
+// Baccalaureate is always السنة الثالثة ثانوي (troisieme)
+const BAC_GRADE = "troisieme";
+
 const empty = {
   year: CURRENT_YEAR,
-  subject: "", subjectAr: "",
-  grade: "troisieme",
+  title: "",
+  branchId: null as number | null,   // UI-only for cascade filtering
+  subjectId: null as number | null,
   link: "",
 };
 
@@ -32,32 +34,68 @@ export default function AdminBaccalaureates() {
   const [form, setForm] = useState(empty);
   const [pdfPreview, setPdfPreview] = useState<{ url: string; title: string } | null>(null);
 
-  const { data, isLoading } = useQuery({
-    queryKey: ["admin", "baccalaureates"],
-    queryFn: adminApi.baccalaureates.list,
-  });
+  const { data, isLoading } = useQuery({ queryKey: ["admin", "baccalaureates"], queryFn: adminApi.baccalaureates.list });
+  const { data: levels = [] } = useQuery({ queryKey: ["admin", "levels"], queryFn: adminApi.levels.list });
+  const { data: branches = [] } = useQuery({ queryKey: ["admin", "branches"], queryFn: adminApi.branches.list });
+  const { data: subjects = [] } = useQuery({ queryKey: ["admin", "subjects"], queryFn: adminApi.subjects.list });
   const invalidate = () => qc.invalidateQueries({ queryKey: ["admin", "baccalaureates"] });
 
   const create = useMutation({ mutationFn: adminApi.baccalaureates.create, onSuccess: () => { invalidate(); close(); toast({ title: "تم الإضافة" }); } });
   const update = useMutation({ mutationFn: ({ id, body }: any) => adminApi.baccalaureates.update(id, body), onSuccess: () => { invalidate(); close(); toast({ title: "تم التعديل" }); } });
   const del    = useMutation({ mutationFn: adminApi.baccalaureates.delete, onSuccess: () => { invalidate(); toast({ title: "تم الحذف" }); } });
 
+  // The troisieme level record
+  const triLevel = (levels as any[]).find((l) => l.code === BAC_GRADE);
+
+  // Branches for السنة الثالثة ثانوي
+  const triBranches = triLevel
+    ? (branches as any[]).filter((b) => {
+        const ids: number[] = Array.isArray(b.levelIds) && b.levelIds.length > 0
+          ? b.levelIds : [b.levelId];
+        return ids.includes(triLevel.id);
+      })
+    : (branches as any[]).filter((b) => b.levelId && b.levelId > 0); // fallback: show all
+
+  // Subjects for the selected branch (grade = troisieme)
+  const filteredSubjects = (subjects as any[]).filter((s) => {
+    if (s.grade !== BAC_GRADE) return false;
+    if (!form.branchId) return true;
+    return s.branchId === null || s.branchId === form.branchId;
+  });
+
   function open(row?: any) {
-    if (row) { setEditing(row); setForm({ ...empty, ...row }); }
-    else     { setEditing(null); setForm(empty); }
+    if (row) {
+      setEditing(row);
+      setForm({
+        year: row.year ?? CURRENT_YEAR,
+        title: row.title ?? "",
+        branchId: null,
+        subjectId: row.subjectId ?? null,
+        link: row.link ?? "",
+      });
+    } else {
+      setEditing(null);
+      setForm(empty);
+    }
     setDialogOpen(true);
   }
   function close() { setDialogOpen(false); setEditing(null); }
 
   function submit() {
-    const body = { ...form, year: Number(form.year) };
+    if (!form.title.trim())  { toast({ title: "يجب إدخال عنوان الملف", variant: "destructive" }); return; }
+    if (!form.branchId)      { toast({ title: "يجب اختيار الشعبة", variant: "destructive" }); return; }
+    if (!form.subjectId)     { toast({ title: "يجب اختيار المادة", variant: "destructive" }); return; }
+    if (!form.link.trim())   { toast({ title: "يجب إدخال رابط PDF", variant: "destructive" }); return; }
+
+    const { branchId: _b, ...rest } = form;
+    const body = { ...rest, grade: BAC_GRADE, subject: "", subjectAr: "", branchId: form.branchId };
     if (editing) update.mutate({ id: editing.id, body });
     else         create.mutate(body);
   }
 
-  const f = (k: keyof typeof empty) =>
-    (e: React.ChangeEvent<HTMLInputElement>) =>
-      setForm((p) => ({ ...p, [k]: e.target.value }));
+  // Helper: find subject name by id
+  const subjectName = (id: number | null) =>
+    id ? (subjects as any[]).find((s) => s.id === id)?.nameAr ?? `#${id}` : "—";
 
   return (
     <div className="space-y-4" dir="rtl">
@@ -74,10 +112,10 @@ export default function AdminBaccalaureates() {
         isDeleting={del.isPending}
         columns={[
           { header: "السنة",    cell: (r) => <span className="font-bold text-primary">{r.year}</span> },
-          { header: "المادة",   cell: (r) => r.subjectAr },
-          { header: "المستوى", cell: (r) => r.grade },
+          { header: "العنوان",  cell: (r) => r.title ?? r.subjectAr },
+          { header: "المادة",   cell: (r) => r.subjectId ? subjectName(r.subjectId) : r.subjectAr },
           { header: "عرض PDF", cell: (r) => r.link ? (
-            <Button variant="ghost" size="sm" className="h-7 gap-1 text-xs" onClick={() => setPdfPreview({ url: r.link, title: `بكالوريا ${r.year} — ${r.subjectAr}` })}>
+            <Button variant="ghost" size="sm" className="h-7 gap-1 text-xs" onClick={() => setPdfPreview({ url: r.link, title: `بكالوريا ${r.year} — ${r.title ?? r.subjectAr}` })}>
               <Eye className="h-3.5 w-3.5" />عرض
             </Button>
           ) : null },
@@ -92,9 +130,9 @@ export default function AdminBaccalaureates() {
         isSubmitting={create.isPending || update.isPending}
       >
         <div className="space-y-4">
-          {/* Year — card grid */}
+          {/* 1. Year — card grid */}
           <div className="space-y-2">
-            <Label>السنة</Label>
+            <Label>السنة <span className="text-destructive">*</span></Label>
             <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 max-h-40 overflow-y-auto p-1">
               {YEAR_OPTIONS.map((y) => (
                 <button
@@ -113,33 +151,66 @@ export default function AdminBaccalaureates() {
             </div>
           </div>
 
-          {/* Grade */}
+          {/* 2. Level — fixed, display only */}
           <div className="space-y-1">
             <Label>المستوى</Label>
-            <Select value={form.grade} onValueChange={(v) => setForm((p) => ({ ...p, grade: v }))}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+            <div className="flex items-center gap-2 h-9 px-3 rounded-md border bg-muted/50">
+              <Badge variant="secondary">السنة الثالثة ثانوي</Badge>
+              <span className="text-xs text-muted-foreground">(ثابت لجميع مواضيع البكالوريا)</span>
+            </div>
+          </div>
+
+          {/* 3. Branch */}
+          <div className="space-y-1">
+            <Label>الشعبة <span className="text-destructive">*</span></Label>
+            <Select
+              value={form.branchId ? String(form.branchId) : ""}
+              onValueChange={(v) => setForm((p) => ({ ...p, branchId: Number(v), subjectId: null }))}
+            >
+              <SelectTrigger><SelectValue placeholder="اختر الشعبة..." /></SelectTrigger>
               <SelectContent>
-                {GRADES.map((g) => <SelectItem key={g} value={g}>{g}</SelectItem>)}
+                {triBranches.map((b: any) => (
+                  <SelectItem key={b.id} value={String(b.id)}>{b.nameAr}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
 
-          {/* Subject names */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1">
-              <Label>اسم المادة (عربي)</Label>
-              <Input value={form.subjectAr} onChange={f("subjectAr")} placeholder="الرياضيات" />
-            </div>
-            <div className="space-y-1">
-              <Label>اسم المادة (فرنسي)</Label>
-              <Input value={form.subject} onChange={f("subject")} placeholder="Mathématiques" />
-            </div>
+          {/* 4. Subject — filtered by branch */}
+          <div className="space-y-1">
+            <Label>المادة <span className="text-destructive">*</span></Label>
+            <Select
+              value={form.subjectId ? String(form.subjectId) : ""}
+              onValueChange={(v) => setForm((p) => ({ ...p, subjectId: Number(v) }))}
+              disabled={!form.branchId}
+            >
+              <SelectTrigger><SelectValue placeholder={form.branchId ? "اختر المادة..." : "اختر الشعبة أولاً"} /></SelectTrigger>
+              <SelectContent>
+                {filteredSubjects.map((s: any) => (
+                  <SelectItem key={s.id} value={String(s.id)}>{s.nameAr}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
-          {/* PDF link */}
+          {/* 5. File title */}
           <div className="space-y-1">
-            <Label>رابط PDF</Label>
-            <Input value={form.link} onChange={f("link")} placeholder="https://..." />
+            <Label>عنوان الملف <span className="text-destructive">*</span></Label>
+            <Input
+              value={form.title}
+              onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
+              placeholder="مثال: موضوع بكالوريا 2024 — الرياضيات"
+            />
+          </div>
+
+          {/* 6. PDF link */}
+          <div className="space-y-1">
+            <Label>رابط ملف PDF <span className="text-destructive">*</span></Label>
+            <Input
+              value={form.link}
+              onChange={(e) => setForm((p) => ({ ...p, link: e.target.value }))}
+              placeholder="https://..."
+            />
           </div>
         </div>
       </FormDialog>

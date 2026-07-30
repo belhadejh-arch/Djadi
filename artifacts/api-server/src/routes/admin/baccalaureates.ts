@@ -7,9 +7,13 @@ const router: IRouter = Router();
 
 const PaperBody = z.object({
   year: z.number().int().min(1990).max(2100),
-  subject: z.string().min(1),
-  subjectAr: z.string().min(1),
-  grade: z.string().min(1),
+  grade: z.string().min(1).default("troisieme"),
+  subjectId: z.number().int().nullable().optional(),
+  branchId: z.number().int().nullable().optional(),
+  title: z.string().nullable().optional(),
+  // legacy text fields — kept for backward compat, auto-derived when possible
+  subject: z.string().default(""),
+  subjectAr: z.string().default(""),
   link: z.string().url(),
 });
 

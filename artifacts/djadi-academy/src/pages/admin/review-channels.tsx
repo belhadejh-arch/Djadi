@@ -11,7 +11,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Trash2, Video } from "lucide-react";
 
-const emptyChannel = { channelName: "", teacherName: "", subjectId: null as number | null, imageUrl: "", sortOrder: 0 };
+const emptyChannel = {
+  channelName: "",
+  teacherName: "",
+  subjectId: null as number | null,
+  imageUrl: "",
+  sortOrder: 0,
+  // UI-only cascade state (not sent to API)
+  _grade: "premiere",
+  _branchId: null as number | null,
+};
 const emptyVideo = { title: "", titleAr: "", videoUrl: "", sortOrder: 0 };
 
 export default function AdminReviewChannels() {
@@ -31,8 +40,36 @@ export default function AdminReviewChannels() {
     queryFn: () => adminApi.reviewChannels.get(selectedChannel!.id),
     enabled: !!selectedChannel,
   });
-  const { data: subjects } = useQuery({ queryKey: ["admin", "subjects"], queryFn: adminApi.subjects.list });
+  const { data: levels = [] } = useQuery({ queryKey: ["admin", "levels"], queryFn: adminApi.levels.list });
+  const { data: branches = [] } = useQuery({ queryKey: ["admin", "branches"], queryFn: adminApi.branches.list });
+  const { data: subjects = [] } = useQuery({ queryKey: ["admin", "subjects"], queryFn: adminApi.subjects.list });
   const invalidate = () => qc.invalidateQueries({ queryKey: ["admin", "review-channels"] });
+
+  const FALLBACK_GRADES = [
+    { code: "premiere",  nameAr: "السنة الأولى ثانوي" },
+    { code: "deuxieme",  nameAr: "السنة الثانية ثانوي" },
+    { code: "troisieme", nameAr: "السنة الثالثة ثانوي" },
+  ];
+  const gradeOptions = (levels as any[]).length > 0 ? levels : FALLBACK_GRADES;
+
+  // Find selected level record
+  const selectedLevel = (levels as any[]).find((l) => l.code === form._grade);
+
+  // Branches for selected level
+  const filteredBranches = selectedLevel
+    ? (branches as any[]).filter((b) => {
+        const ids: number[] = Array.isArray(b.levelIds) && b.levelIds.length > 0
+          ? b.levelIds : [b.levelId];
+        return ids.includes(selectedLevel.id);
+      })
+    : [];
+
+  // Subjects for selected grade + branch
+  const filteredSubjects = (subjects as any[]).filter((s) => {
+    if (s.grade !== form._grade) return false;
+    if (!form._branchId) return true;
+    return s.branchId === null || s.branchId === form._branchId;
+  });
 
   const create = useMutation({ mutationFn: adminApi.reviewChannels.create, onSuccess: () => { invalidate(); close(); toast({ title: "تم الإضافة" }); } });
   const update = useMutation({ mutationFn: ({ id, body }: any) => adminApi.reviewChannels.update(id, body), onSuccess: () => { invalidate(); close(); toast({ title: "تم التعديل" }); } });
@@ -41,13 +78,24 @@ export default function AdminReviewChannels() {
   const delVideo = useMutation({ mutationFn: ({ chId, vId }: any) => adminApi.reviewChannels.deleteVideo(chId, vId), onSuccess: () => invalidate() });
 
   function open(row?: any) {
-    if (row) { setEditing(row); setForm({ ...emptyChannel, ...row }); }
-    else { setEditing(null); setForm(emptyChannel); }
+    if (row) {
+      setEditing(row);
+      setForm({ ...emptyChannel, channelName: row.channelName, teacherName: row.teacherName, subjectId: row.subjectId ?? null, imageUrl: row.imageUrl ?? "", sortOrder: row.sortOrder ?? 0 });
+    } else {
+      setEditing(null);
+      setForm(emptyChannel);
+    }
     setDialogOpen(true);
   }
   function close() { setDialogOpen(false); setEditing(null); }
+
   function submit() {
-    const body = { ...form, subjectId: form.subjectId || null, imageUrl: form.imageUrl || null };
+    if (!form.channelName.trim()) { toast({ title: "يجب إدخال اسم القناة", variant: "destructive" }); return; }
+    if (!form.teacherName.trim()) { toast({ title: "يجب إدخال اسم الأستاذ", variant: "destructive" }); return; }
+    if (!form.subjectId)          { toast({ title: "يجب اختيار المادة", variant: "destructive" }); return; }
+
+    const { _grade: _g, _branchId: _b, ...rest } = form;
+    const body = { ...rest, imageUrl: form.imageUrl || null };
     if (editing) update.mutate({ id: editing.id, body });
     else create.mutate(body);
   }
@@ -63,8 +111,8 @@ export default function AdminReviewChannels() {
     addVideo.mutate({ chId: selectedChannel.id, body: { ...videoForm, sortOrder: Number(videoForm.sortOrder) } });
   }
 
-  const f = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
-    setForm((p) => ({ ...p, [k]: k === "sortOrder" ? Number(e.target.value) : e.target.value }));
+  const f = (k: "channelName" | "teacherName" | "imageUrl") =>
+    (e: React.ChangeEvent<HTMLInputElement>) => setForm((p) => ({ ...p, [k]: e.target.value }));
   const fv = (k: keyof typeof videoForm) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setVideoForm((p) => ({ ...p, [k]: k === "sortOrder" ? Number(e.target.value) : e.target.value }));
 
@@ -115,25 +163,83 @@ export default function AdminReviewChannels() {
         )}
       </div>
 
+      {/* Channel form dialog */}
       <FormDialog open={dialogOpen} onClose={close} title={editing ? "تعديل القناة" : "إضافة قناة"} onSubmit={submit} isSubmitting={create.isPending || update.isPending}>
         <div className="space-y-3">
-          <div className="space-y-1"><Label>اسم القناة</Label><Input value={form.channelName} onChange={f("channelName")} /></div>
-          <div className="space-y-1"><Label>اسم الأستاذ</Label><Input value={form.teacherName} onChange={f("teacherName")} /></div>
           <div className="space-y-1">
-            <Label>المادة (اختياري)</Label>
-            <Select value={form.subjectId ? String(form.subjectId) : "none"} onValueChange={(v) => setForm(p => ({ ...p, subjectId: v === "none" ? null : Number(v) }))}>
-              <SelectTrigger><SelectValue placeholder="اختر مادة..." /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">—</SelectItem>
-                {subjects?.map((s: any) => <SelectItem key={s.id} value={String(s.id)}>{s.nameAr}</SelectItem>)}
-              </SelectContent>
-            </Select>
+            <Label>اسم القناة <span className="text-destructive">*</span></Label>
+            <Input value={form.channelName} onChange={f("channelName")} />
           </div>
-          <div className="space-y-1"><Label>رابط صورة القناة (اختياري)</Label><Input value={form.imageUrl} onChange={f("imageUrl")} placeholder="https://..." /></div>
-          <div className="space-y-1"><Label>الترتيب</Label><Input type="number" value={form.sortOrder} onChange={f("sortOrder")} /></div>
+          <div className="space-y-1">
+            <Label>اسم الأستاذ <span className="text-destructive">*</span></Label>
+            <Input value={form.teacherName} onChange={f("teacherName")} />
+          </div>
+
+          {/* Cascade: level → branch → subject (required) */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {/* Level */}
+            <div className="space-y-1">
+              <Label>المستوى <span className="text-destructive">*</span></Label>
+              <Select
+                value={form._grade}
+                onValueChange={(v) => setForm((p) => ({ ...p, _grade: v, _branchId: null, subjectId: null }))}
+              >
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {(gradeOptions as any[]).map((l) => (
+                    <SelectItem key={l.code} value={l.code}>{l.nameAr}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Branch */}
+            <div className="space-y-1">
+              <Label>الشعبة <span className="text-destructive">*</span></Label>
+              <Select
+                value={form._branchId ? String(form._branchId) : ""}
+                onValueChange={(v) => setForm((p) => ({ ...p, _branchId: Number(v), subjectId: null }))}
+                disabled={!form._grade}
+              >
+                <SelectTrigger><SelectValue placeholder="اختر الشعبة..." /></SelectTrigger>
+                <SelectContent>
+                  {filteredBranches.map((b: any) => (
+                    <SelectItem key={b.id} value={String(b.id)}>{b.nameAr}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Subject — required */}
+            <div className="space-y-1">
+              <Label>المادة <span className="text-destructive">*</span></Label>
+              <Select
+                value={form.subjectId ? String(form.subjectId) : ""}
+                onValueChange={(v) => setForm((p) => ({ ...p, subjectId: Number(v) }))}
+                disabled={!form._branchId}
+              >
+                <SelectTrigger><SelectValue placeholder={form._branchId ? "اختر المادة..." : "اختر الشعبة أولاً"} /></SelectTrigger>
+                <SelectContent>
+                  {filteredSubjects.map((s: any) => (
+                    <SelectItem key={s.id} value={String(s.id)}>{s.nameAr}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="space-y-1">
+            <Label>رابط صورة القناة (اختياري)</Label>
+            <Input value={form.imageUrl} onChange={f("imageUrl")} placeholder="https://..." />
+          </div>
+          <div className="space-y-1">
+            <Label>الترتيب</Label>
+            <Input type="number" value={form.sortOrder} onChange={(e) => setForm((p) => ({ ...p, sortOrder: Number(e.target.value) }))} />
+          </div>
         </div>
       </FormDialog>
 
+      {/* Video form dialog */}
       <FormDialog open={videoDialogOpen} onClose={closeVideo} title="إضافة فيديو" onSubmit={submitVideo} isSubmitting={addVideo.isPending}>
         <div className="space-y-3">
           <div className="space-y-1"><Label>العنوان (عربي)</Label><Input value={videoForm.titleAr} onChange={fv("titleAr")} /></div>
