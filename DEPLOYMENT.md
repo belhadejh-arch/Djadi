@@ -16,6 +16,8 @@
 | Root Directory | *(اتركه فارغًا — جذر المستودع)* |
 | Build Command | `npm install -g pnpm@10 && pnpm install --frozen-lockfile && pnpm --filter @workspace/api-server run build` |
 | Start Command | `pnpm --filter @workspace/api-server run start` |
+
+> **ملاحظة:** سكريبت `prestart` يُطبّق مخطط قاعدة البيانات (`drizzle-kit push --force`) تلقائياً قبل كل تشغيل — لا حاجة لأي خطوة يدوية.
 | Runtime | Node 20 (أضف متغير بيئة `NODE_VERSION` = `20.20.0` على Render) |
 
 > لا تستخدم `corepack enable` على Render — نظام الملفات لديهم للقراءة فقط في `/usr/bin` وسيفشل البناء بخطأ `EROFS`.
