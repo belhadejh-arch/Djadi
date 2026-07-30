@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useLocation } from 'wouter';
 
 const SPLASH_KEY = 'djadi_splash_shown';
-const DURATION_MS = 4000;
+const DURATION_MS = 6000;
 
 export function SplashScreen({ onDone }: { onDone: () => void }) {
   const [visible, setVisible] = useState(true);
@@ -80,14 +80,16 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
         {/* Skip button */}
         <button
           onClick={skip}
-          className="px-8 py-3 rounded-full text-sm font-semibold"
+          className="px-10 py-3 rounded-full font-bold"
           style={{
-            background: 'rgba(255,255,255,0.18)',
+            background: 'rgba(0,0,0,0.45)',
             color: '#ffffff',
-            border: '1.5px solid rgba(255,255,255,0.5)',
+            border: '2px solid rgba(255,255,255,0.85)',
             backdropFilter: 'blur(8px)',
             WebkitBackdropFilter: 'blur(8px)',
-            letterSpacing: '0.03em',
+            fontSize: '1.1rem',
+            letterSpacing: '0.06em',
+            textShadow: '0 1px 4px rgba(0,0,0,0.5)',
           }}
         >
           تخطي
