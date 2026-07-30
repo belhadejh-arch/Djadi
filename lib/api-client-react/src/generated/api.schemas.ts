@@ -51,6 +51,8 @@ export interface User {
   grade?: string | null;
   /** @nullable */
   avatarUrl?: string | null;
+  /** student | super_admin */
+  role: string;
   createdAt?: string;
 }
 

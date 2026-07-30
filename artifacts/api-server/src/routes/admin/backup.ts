@@ -123,7 +123,7 @@ router.post("/create", async (_req: Request, res: Response): Promise<void> => {
 
 // Download backup
 router.get("/:id/download", async (req: Request, res: Response): Promise<void> => {
-  const { id } = req.params;
+  const id = String(req.params.id);
   if (!/^backup_\d+$/.test(id)) {
     res.status(400).json({ error: "Invalid backup id" });
     return;
@@ -205,7 +205,7 @@ router.post("/restore", async (req: Request, res: Response): Promise<void> => {
 
 // Delete backup
 router.delete("/:id", async (req: Request, res: Response): Promise<void> => {
-  const { id } = req.params;
+  const id = String(req.params.id);
   if (!/^backup_\d+$/.test(id)) {
     res.status(400).json({ error: "Invalid backup id" });
     return;

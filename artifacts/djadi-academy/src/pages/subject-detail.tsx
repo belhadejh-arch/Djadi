@@ -106,22 +106,23 @@ export default function SubjectDetail() {
 
   const { data: apiSubject, isLoading: subjectLoading } = useGetSubject(
     numericId,
-    { query: { enabled: isNumeric } }
+    { query: { enabled: isNumeric, queryKey: [] } }
   );
   const { data: lessons, isLoading: lessonsLoading } = useListLessons(
     { subjectId: numericId },
-    { query: { enabled: isNumeric && activeTab === "lessons" } }
+    { query: { enabled: isNumeric && activeTab === "lessons", queryKey: [] } }
   );
   const { data: user } = useGetMe();
 
+  const userGrade = user?.grade ?? undefined;
   const { data: examItems, isLoading: examsLoading } = useContentItems(
-    "exams", isNumeric ? numericId : undefined, user?.grade
+    "exams", isNumeric ? numericId : undefined, userGrade
   );
   const { data: testItems, isLoading: testsLoading } = useContentItems(
-    "tests", isNumeric ? numericId : undefined, user?.grade
+    "tests", isNumeric ? numericId : undefined, userGrade
   );
   const { data: homeworkItems, isLoading: hwLoading } = useContentItems(
-    "homework", isNumeric ? numericId : undefined, user?.grade
+    "homework", isNumeric ? numericId : undefined, userGrade
   );
 
   const isTroisieme = user?.grade === "troisieme";

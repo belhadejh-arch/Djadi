@@ -25,3 +25,4 @@ channel = "stable-25_05"
 
 [userenv.shared]
 NEON_DATABASE_URL = "postgresql://neondb_owner:npg_KGEWmgSJ86Os@ep-delicate-block-ayltmzwo-pooler.c-5.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+API_PORT = "8080"

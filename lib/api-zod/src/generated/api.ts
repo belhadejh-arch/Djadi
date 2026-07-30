@@ -38,6 +38,7 @@ export const RegisterResponse = zod.object({
   "email": zod.string(),
   "grade": zod.string().nullish(),
   "avatarUrl": zod.string().nullish(),
+  "role": zod.string().describe('student | super_admin'),
   "createdAt": zod.coerce.date().optional()
 })
 })
@@ -58,6 +59,7 @@ export const LoginResponse = zod.object({
   "email": zod.string(),
   "grade": zod.string().nullish(),
   "avatarUrl": zod.string().nullish(),
+  "role": zod.string().describe('student | super_admin'),
   "createdAt": zod.coerce.date().optional()
 })
 })
@@ -80,6 +82,7 @@ export const GetMeResponse = zod.object({
   "email": zod.string(),
   "grade": zod.string().nullish(),
   "avatarUrl": zod.string().nullish(),
+  "role": zod.string().describe('student | super_admin'),
   "createdAt": zod.coerce.date().optional()
 })
 
@@ -97,6 +100,7 @@ export const UpdateGradeResponse = zod.object({
   "email": zod.string(),
   "grade": zod.string().nullish(),
   "avatarUrl": zod.string().nullish(),
+  "role": zod.string().describe('student | super_admin'),
   "createdAt": zod.coerce.date().optional()
 })
 

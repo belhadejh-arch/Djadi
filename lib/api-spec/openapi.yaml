@@ -314,7 +314,7 @@ components:
 
     User:
       type: object
-      required: [id, fullName, email]
+      required: [id, fullName, email, role]
       properties:
         id:
           type: number
@@ -326,6 +326,9 @@ components:
           type: ["string", "null"]
         avatarUrl:
           type: ["string", "null"]
+        role:
+          type: string
+          description: student | super_admin
         createdAt:
           type: string
           format: date-time

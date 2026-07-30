@@ -122,7 +122,7 @@ export default function LessonDetail() {
   const lessonId = Number(params.id);
 
   const { data: lesson, isLoading } = useGetLesson(lessonId, {
-    query: { enabled: !!lessonId },
+    query: { enabled: !!lessonId, queryKey: [] },
   });
   const { data: content, isLoading: contentLoading } = useLessonContent(lessonId);
   const recordActivity = useRecordActivity();
