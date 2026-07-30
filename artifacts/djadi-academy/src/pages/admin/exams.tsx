@@ -19,7 +19,8 @@ const SEMESTERS = [
 ];
 
 const empty = {
-  title: "", titleAr: "",
+  titleAr: "",
+  title: "",
   grade: "premiere",
   branchId: null as number | null,
   subjectId: null as number | null,
@@ -50,8 +51,14 @@ export default function AdminExams() {
   function close() { setDialogOpen(false); setEditing(null); }
 
   function submit() {
+    if (!form.titleAr.trim()) { toast({ title: "يجب إدخال عنوان الفرض", variant: "destructive" }); return; }
+    if (!form.grade)          { toast({ title: "يجب اختيار المستوى", variant: "destructive" }); return; }
+    if (!form.branchId)       { toast({ title: "يجب اختيار الشعبة", variant: "destructive" }); return; }
+    if (!form.subjectId)      { toast({ title: "يجب اختيار المادة", variant: "destructive" }); return; }
+    if (!form.link.trim())    { toast({ title: "يجب إدخال رابط PDF", variant: "destructive" }); return; }
+
     const { branchId: _b, ...rest } = form;
-    const body = { ...rest, subjectId: form.subjectId || null };
+    const body = { ...rest, title: form.title || form.titleAr, subjectId: form.subjectId };
     if (editing) update.mutate({ id: editing.id, body });
     else         create.mutate(body);
   }
@@ -95,13 +102,13 @@ export default function AdminExams() {
         isSubmitting={create.isPending || update.isPending}
       >
         <div className="space-y-3">
-          {/* Titles */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1"><Label>العنوان (عربي)</Label><Input value={form.titleAr} onChange={f("titleAr")} /></div>
-            <div className="space-y-1"><Label>العنوان (فرنسي)</Label><Input value={form.title} onChange={f("title")} /></div>
+          {/* 1. Title */}
+          <div className="space-y-1">
+            <Label>عنوان الفرض <span className="text-destructive">*</span></Label>
+            <Input value={form.titleAr} onChange={f("titleAr")} placeholder="اكتب عنوان الفرض..." />
           </div>
 
-          {/* Cascade */}
+          {/* 2-4. Cascade: level → branch (required) → subject (required) */}
           <LevelBranchSubjectSelector
             grade={form.grade}
             branchId={form.branchId}
@@ -109,11 +116,13 @@ export default function AdminExams() {
             onGradeChange={(v)    => setForm((p) => ({ ...p, grade: v, branchId: null, subjectId: null }))}
             onBranchIdChange={(v) => setForm((p) => ({ ...p, branchId: v, subjectId: null }))}
             onSubjectIdChange={(v) => setForm((p) => ({ ...p, subjectId: v }))}
+            branchRequired
+            subjectRequired
           />
 
-          {/* Semester */}
+          {/* 5. Semester */}
           <div className="space-y-1">
-            <Label>الفصل الدراسي</Label>
+            <Label>الفصل الدراسي <span className="text-destructive">*</span></Label>
             <Select value={form.semester} onValueChange={(v) => setForm((p) => ({ ...p, semester: v }))}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -122,9 +131,9 @@ export default function AdminExams() {
             </Select>
           </div>
 
-          {/* PDF link */}
+          {/* 6. PDF link */}
           <div className="space-y-1">
-            <Label>رابط PDF</Label>
+            <Label>رابط ملف PDF <span className="text-destructive">*</span></Label>
             <Input value={form.link} onChange={f("link")} placeholder="https://..." />
           </div>
         </div>

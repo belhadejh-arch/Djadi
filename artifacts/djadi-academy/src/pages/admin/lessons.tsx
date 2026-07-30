@@ -8,7 +8,6 @@ import { LevelBranchSubjectSelector } from "@/components/admin/level-branch-subj
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { PdfViewer } from "@/components/pdf-viewer";
 import { useToast } from "@/hooks/use-toast";
@@ -25,14 +24,17 @@ const typeColors: Record<string, string> = {
 };
 
 const empty = {
-  title: "", titleAr: "",
+  titleAr: "",
+  title: "",
   grade: "premiere",
-  branchId: null as number | null,   // UI-only for cascade filtering
+  branchId: null as number | null,
   subjectId: 0,
+  type: "pdf" as "pdf" | "video" | "link",
+  pdfUrl: "",
+  videoUrl: "",
+  linkUrl: "",
   duration: 30,
-  type: "pdf",
   description: "",
-  pdfUrl: "", videoUrl: "", linkUrl: "",
 };
 
 export default function AdminLessons() {
@@ -61,9 +63,17 @@ export default function AdminLessons() {
   function close() { setDialogOpen(false); setEditing(null); }
 
   function submit() {
-    const { branchId: _b, ...rest } = form; // strip UI-only branchId
+    if (!form.grade) { toast({ title: "يجب اختيار المستوى", variant: "destructive" }); return; }
+    if (!form.branchId) { toast({ title: "يجب اختيار الشعبة", variant: "destructive" }); return; }
+    if (!form.subjectId) { toast({ title: "يجب اختيار المادة", variant: "destructive" }); return; }
+    if (!form.titleAr.trim()) { toast({ title: "يجب إدخال عنوان الدرس", variant: "destructive" }); return; }
+    const url = form.type === "pdf" ? form.pdfUrl : form.type === "video" ? form.videoUrl : form.linkUrl;
+    if (!url.trim()) { toast({ title: "يجب إدخال الرابط", variant: "destructive" }); return; }
+
+    const { branchId: _b, ...rest } = form;
     const body = {
       ...rest,
+      title: form.title || form.titleAr,
       subjectId: Number(form.subjectId),
       duration:  Number(form.duration),
       pdfUrl:    form.pdfUrl   || null,
@@ -113,7 +123,7 @@ export default function AdminLessons() {
         isSubmitting={create.isPending || update.isPending}
       >
         <div className="space-y-3">
-          {/* Cascade: level → branch → subject */}
+          {/* 1. Cascade: level (required) → branch (required) → subject (required) */}
           <LevelBranchSubjectSelector
             grade={form.grade}
             branchId={form.branchId}
@@ -121,41 +131,32 @@ export default function AdminLessons() {
             onGradeChange={(v)    => setForm((p) => ({ ...p, grade: v, branchId: null, subjectId: 0 }))}
             onBranchIdChange={(v) => setForm((p) => ({ ...p, branchId: v, subjectId: 0 }))}
             onSubjectIdChange={(v) => setForm((p) => ({ ...p, subjectId: v ?? 0 }))}
+            branchRequired
             subjectRequired
           />
 
-          {/* Titles */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1"><Label>عنوان الدرس (عربي)</Label><Input value={form.titleAr} onChange={f("titleAr")} /></div>
-            <div className="space-y-1"><Label>عنوان الدرس (فرنسي)</Label><Input value={form.title} onChange={f("title")} /></div>
-          </div>
-
-          {/* Description */}
+          {/* 2. Lesson title */}
           <div className="space-y-1">
-            <Label>وصف الدرس (اختياري)</Label>
-            <Input value={form.description} onChange={f("description")} placeholder="وصف مختصر للدرس..." />
+            <Label>عنوان الدرس <span className="text-destructive">*</span></Label>
+            <Input value={form.titleAr} onChange={f("titleAr")} placeholder="اكتب عنوان الدرس..." />
           </div>
 
-          {/* Type + Duration */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1">
-              <Label>نوع المحتوى</Label>
-              <Select value={form.type} onValueChange={(v) => setForm((p) => ({ ...p, type: v }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{TYPES.map((t) => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1"><Label>المدة (دقائق)</Label><Input type="number" value={form.duration} onChange={f("duration")} /></div>
+          {/* 3. Content type */}
+          <div className="space-y-1">
+            <Label>نوع المحتوى <span className="text-destructive">*</span></Label>
+            <Select value={form.type} onValueChange={(v) => setForm((p) => ({ ...p, type: v as any, pdfUrl: "", videoUrl: "", linkUrl: "" }))}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>{TYPES.map((t) => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
+            </Select>
           </div>
 
-          {/* Conditional URL fields */}
-          {form.type === "pdf"   && <div className="space-y-1"><Label>رابط PDF</Label><Input value={form.pdfUrl}   onChange={f("pdfUrl")}   placeholder="https://..." /></div>}
-          {form.type === "video" && <div className="space-y-1"><Label>رابط الفيديو</Label><Input value={form.videoUrl} onChange={f("videoUrl")} placeholder="https://..." /></div>}
-          {form.type === "link"  && <div className="space-y-1"><Label>الرابط</Label><Input value={form.linkUrl}  onChange={f("linkUrl")}  placeholder="https://..." /></div>}
+          {/* 4. URL (conditional on type) */}
+          {form.type === "pdf"   && <div className="space-y-1"><Label>رابط PDF <span className="text-destructive">*</span></Label><Input value={form.pdfUrl}   onChange={f("pdfUrl")}   placeholder="https://..." /></div>}
+          {form.type === "video" && <div className="space-y-1"><Label>رابط الفيديو <span className="text-destructive">*</span></Label><Input value={form.videoUrl} onChange={f("videoUrl")} placeholder="https://..." /></div>}
+          {form.type === "link"  && <div className="space-y-1"><Label>الرابط <span className="text-destructive">*</span></Label><Input value={form.linkUrl}  onChange={f("linkUrl")}  placeholder="https://..." /></div>}
         </div>
       </FormDialog>
 
-      {/* In-app PDF viewer */}
       {pdfPreview && (
         <PdfViewer
           url={pdfPreview.url}

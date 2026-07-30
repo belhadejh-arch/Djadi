@@ -24,12 +24,14 @@ interface Props {
   onBranchIdChange: (id: number | null) => void;
   onSubjectIdChange: (id: number | null) => void;
   subjectRequired?: boolean;
+  branchRequired?: boolean;
 }
 
 export function LevelBranchSubjectSelector({
   grade, branchId, subjectId,
   onGradeChange, onBranchIdChange, onSubjectIdChange,
   subjectRequired = false,
+  branchRequired = false,
 }: Props) {
   const { data: levels = [] }   = useQuery({ queryKey: ["admin", "levels"],   queryFn: adminApi.levels.list });
   const { data: branches = [] } = useQuery({ queryKey: ["admin", "branches"], queryFn: adminApi.branches.list });
@@ -40,9 +42,14 @@ export function LevelBranchSubjectSelector({
   // Find the DB-level whose code matches the selected grade
   const selectedLevel = (levels as any[]).find((l) => l.code === grade);
 
-  // Branches that belong to the selected level
+  // Branches that belong to the selected level — supports multi-level (levelIds array)
   const filteredBranches = selectedLevel
-    ? (branches as any[]).filter((b) => b.levelId === selectedLevel.id)
+    ? (branches as any[]).filter((b) => {
+        const ids: number[] = Array.isArray(b.levelIds) && b.levelIds.length > 0
+          ? b.levelIds
+          : [b.levelId];
+        return ids.includes(selectedLevel.id);
+      })
     : [];
 
   // Subjects that match the grade and optionally the branch
@@ -56,7 +63,7 @@ export function LevelBranchSubjectSelector({
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
       {/* Level */}
       <div className="space-y-1">
-        <Label>المستوى</Label>
+        <Label>المستوى <span className="text-destructive">*</span></Label>
         <Select
           value={grade || ""}
           onValueChange={(v) => {
@@ -76,9 +83,9 @@ export function LevelBranchSubjectSelector({
 
       {/* Branch */}
       <div className="space-y-1">
-        <Label>الشعبة</Label>
+        <Label>الشعبة {branchRequired ? <span className="text-destructive">*</span> : "(اختياري)"}</Label>
         <Select
-          value={branchId ? String(branchId) : "all"}
+          value={branchId ? String(branchId) : (branchRequired ? "" : "all")}
           onValueChange={(v) => {
             onBranchIdChange(v === "all" ? null : Number(v));
             onSubjectIdChange(null);
@@ -87,7 +94,7 @@ export function LevelBranchSubjectSelector({
         >
           <SelectTrigger><SelectValue placeholder="اختر الشعبة..." /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">جميع الشعب</SelectItem>
+            {!branchRequired && <SelectItem value="all">جميع الشعب</SelectItem>}
             {filteredBranches.map((b: any) => (
               <SelectItem key={b.id} value={String(b.id)}>{b.nameAr}</SelectItem>
             ))}
@@ -97,7 +104,7 @@ export function LevelBranchSubjectSelector({
 
       {/* Subject */}
       <div className="space-y-1">
-        <Label>المادة{!subjectRequired && " (اختياري)"}</Label>
+        <Label>المادة {subjectRequired ? <span className="text-destructive">*</span> : "(اختياري)"}</Label>
         <Select
           value={subjectId ? String(subjectId) : "none"}
           onValueChange={(v) => onSubjectIdChange(v === "none" ? null : Number(v))}
