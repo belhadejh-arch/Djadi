@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ChevronRight } from "lucide-react";
 import { adminApi } from "@/lib/admin-api";
+import { getListSubjectsQueryKey } from "@workspace/api-client-react";
 import { CrudTable } from "@/components/admin/crud-table";
 import { FormDialog } from "@/components/admin/form-dialog";
 import { Input } from "@/components/ui/input";
@@ -10,12 +11,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-
-const FALLBACK_LEVELS = [
-  { id: 0, code: "premiere", nameAr: "السنة الأولى ثانوي", nameFr: "1ère Secondaire" },
-  { id: 0, code: "deuxieme", nameAr: "السنة الثانية ثانوي", nameFr: "2ème Secondaire" },
-  { id: 0, code: "troisieme", nameAr: "السنة الثالثة ثانوي", nameFr: "3ème Secondaire" },
-];
 
 function emptyForm(grade: string, branchId: number | null) {
   return { name: "", nameAr: "", nameFr: "", grade, branchId, color: "#6366f1", icon: "📚", description: "" };
@@ -35,13 +30,18 @@ export default function AdminSubjects() {
   const { data: levels = [], isLoading: levelsLoading } = useQuery({ queryKey: ["admin", "levels"], queryFn: adminApi.levels.list });
   const { data: branches = [] } = useQuery({ queryKey: ["admin", "branches"], queryFn: adminApi.branches.list });
   const { data: subjects = [], isLoading: subjectsLoading } = useQuery({ queryKey: ["admin", "subjects"], queryFn: adminApi.subjects.list });
-  const invalidate = () => qc.invalidateQueries({ queryKey: ["admin", "subjects"] });
+  const invalidate = () => {
+    qc.invalidateQueries({ queryKey: ["admin", "subjects"] });
+    // Also invalidate student-facing subjects so changes appear immediately
+    // Invalidate all subject queries (with any params) by matching the URL prefix
+    qc.invalidateQueries({ queryKey: ["/api/subjects"] });
+  };
 
   const create = useMutation({ mutationFn: adminApi.subjects.create, onSuccess: () => { invalidate(); close(); toast({ title: "تم الإضافة" }); } });
   const update = useMutation({ mutationFn: ({ id, body }: any) => adminApi.subjects.update(id, body), onSuccess: () => { invalidate(); close(); toast({ title: "تم التعديل" }); } });
   const del = useMutation({ mutationFn: adminApi.subjects.delete, onSuccess: () => { invalidate(); toast({ title: "تم الحذف" }); } });
 
-  const displayLevels = (levels as any[]).length > 0 ? levels : FALLBACK_LEVELS;
+  const displayLevels = levels as any[];
 
   const selectedLevel = (displayLevels as any[]).find((l) => l.code === selectedLevelCode);
 

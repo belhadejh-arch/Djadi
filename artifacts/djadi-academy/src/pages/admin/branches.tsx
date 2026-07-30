@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { adminApi } from "@/lib/admin-api";
+import { getListBranchesQueryKey } from "@workspace/api-client-react";
 import { CrudTable } from "@/components/admin/crud-table";
 import { FormDialog } from "@/components/admin/form-dialog";
 import { Input } from "@/components/ui/input";
@@ -20,7 +21,11 @@ export default function AdminBranches() {
 
   const { data, isLoading } = useQuery({ queryKey: ["admin", "branches"], queryFn: adminApi.branches.list });
   const { data: levels = [] } = useQuery({ queryKey: ["admin", "levels"], queryFn: adminApi.levels.list });
-  const invalidate = () => qc.invalidateQueries({ queryKey: ["admin", "branches"] });
+  const invalidate = () => {
+    qc.invalidateQueries({ queryKey: ["admin", "branches"] });
+    // Also invalidate student-facing branches so changes appear immediately
+    qc.invalidateQueries({ queryKey: getListBranchesQueryKey() });
+  };
 
   const create = useMutation({ mutationFn: adminApi.branches.create, onSuccess: () => { invalidate(); close(); toast({ title: "تم الإضافة" }); } });
   const update = useMutation({ mutationFn: ({ id, body }: any) => adminApi.branches.update(id, body), onSuccess: () => { invalidate(); close(); toast({ title: "تم التعديل" }); } });

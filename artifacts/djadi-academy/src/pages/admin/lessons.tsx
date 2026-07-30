@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Eye } from "lucide-react";
 import { adminApi } from "@/lib/admin-api";
+import { getListLessonsQueryKey } from "@workspace/api-client-react";
 import { CrudTable } from "@/components/admin/crud-table";
 import { FormDialog } from "@/components/admin/form-dialog";
 import { LevelBranchSubjectSelector } from "@/components/admin/level-branch-subject-selector";
@@ -49,7 +50,11 @@ export default function AdminLessons() {
     queryKey: ["admin", "lessons"],
     queryFn: () => adminApi.lessons.list(),
   });
-  const invalidate = () => qc.invalidateQueries({ queryKey: ["admin", "lessons"] });
+  const invalidate = () => {
+    qc.invalidateQueries({ queryKey: ["admin", "lessons"] });
+    // Also invalidate student-facing lessons so changes appear immediately
+    qc.invalidateQueries({ queryKey: getListLessonsQueryKey() });
+  };
 
   const create = useMutation({ mutationFn: adminApi.lessons.create, onSuccess: () => { invalidate(); close(); toast({ title: "تم الإضافة" }); } });
   const update = useMutation({ mutationFn: ({ id, body }: any) => adminApi.lessons.update(id, body), onSuccess: () => { invalidate(); close(); toast({ title: "تم التعديل" }); } });

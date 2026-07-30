@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { adminApi } from "@/lib/admin-api";
+import { getListLevelsQueryKey } from "@workspace/api-client-react";
 import { CrudTable } from "@/components/admin/crud-table";
 import { FormDialog } from "@/components/admin/form-dialog";
 import { Input } from "@/components/ui/input";
@@ -17,7 +18,11 @@ export default function AdminLevels() {
   const [form, setForm] = useState(empty);
 
   const { data, isLoading } = useQuery({ queryKey: ["admin", "levels"], queryFn: adminApi.levels.list });
-  const invalidate = () => qc.invalidateQueries({ queryKey: ["admin", "levels"] });
+  const invalidate = () => {
+    qc.invalidateQueries({ queryKey: ["admin", "levels"] });
+    // Also invalidate student-facing levels so changes appear immediately
+    qc.invalidateQueries({ queryKey: getListLevelsQueryKey() });
+  };
 
   const create = useMutation({ mutationFn: adminApi.levels.create, onSuccess: () => { invalidate(); close(); toast({ title: "تم الإضافة" }); } });
   const update = useMutation({ mutationFn: ({ id, body }: any) => adminApi.levels.update(id, body), onSuccess: () => { invalidate(); close(); toast({ title: "تم التعديل" }); } });

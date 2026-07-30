@@ -37,7 +37,11 @@ export default function AdminTests() {
   const [pdfPreview, setPdfPreview] = useState<{ url: string; title: string } | null>(null);
 
   const { data, isLoading } = useQuery({ queryKey: ["admin", "tests"], queryFn: adminApi.tests.list });
-  const invalidate = () => qc.invalidateQueries({ queryKey: ["admin", "tests"] });
+  const invalidate = () => {
+    qc.invalidateQueries({ queryKey: ["admin", "tests"] });
+    // Also invalidate student-facing content so changes appear immediately
+    qc.invalidateQueries({ queryKey: ["content"] });
+  };
 
   const create = useMutation({ mutationFn: adminApi.tests.create, onSuccess: () => { invalidate(); close(); toast({ title: "تم الإضافة" }); } });
   const update = useMutation({ mutationFn: ({ id, body }: any) => adminApi.tests.update(id, body), onSuccess: () => { invalidate(); close(); toast({ title: "تم التعديل" }); } });

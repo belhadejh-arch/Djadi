@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Eye } from "lucide-react";
 import { adminApi } from "@/lib/admin-api";
+// Student content queries share the ["content"] prefix (subject-detail.tsx)
 import { CrudTable } from "@/components/admin/crud-table";
 import { FormDialog } from "@/components/admin/form-dialog";
 import { LevelBranchSubjectSelector } from "@/components/admin/level-branch-subject-selector";
@@ -37,7 +38,11 @@ export default function AdminExams() {
   const [pdfPreview, setPdfPreview] = useState<{ url: string; title: string } | null>(null);
 
   const { data, isLoading } = useQuery({ queryKey: ["admin", "exams"], queryFn: adminApi.exams.list });
-  const invalidate = () => qc.invalidateQueries({ queryKey: ["admin", "exams"] });
+  const invalidate = () => {
+    qc.invalidateQueries({ queryKey: ["admin", "exams"] });
+    // Also invalidate student-facing content so changes appear immediately
+    qc.invalidateQueries({ queryKey: ["content"] });
+  };
 
   const create = useMutation({ mutationFn: adminApi.exams.create, onSuccess: () => { invalidate(); close(); toast({ title: "تم الإضافة" }); } });
   const update = useMutation({ mutationFn: ({ id, body }: any) => adminApi.exams.update(id, body), onSuccess: () => { invalidate(); close(); toast({ title: "تم التعديل" }); } });

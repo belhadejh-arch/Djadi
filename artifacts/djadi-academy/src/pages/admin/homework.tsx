@@ -43,7 +43,11 @@ export default function AdminHomework() {
   const [pdfPreview, setPdfPreview] = useState<{ url: string; title: string } | null>(null);
 
   const { data, isLoading } = useQuery({ queryKey: ["admin", "homework"], queryFn: adminApi.homework.list });
-  const invalidate = () => qc.invalidateQueries({ queryKey: ["admin", "homework"] });
+  const invalidate = () => {
+    qc.invalidateQueries({ queryKey: ["admin", "homework"] });
+    // Also invalidate student-facing content so changes appear immediately
+    qc.invalidateQueries({ queryKey: ["content"] });
+  };
 
   const create = useMutation({ mutationFn: adminApi.homework.create, onSuccess: () => { invalidate(); close(); toast({ title: "تم الإضافة" }); } });
   const update = useMutation({ mutationFn: ({ id, body }: any) => adminApi.homework.update(id, body), onSuccess: () => { invalidate(); close(); toast({ title: "تم التعديل" }); } });
