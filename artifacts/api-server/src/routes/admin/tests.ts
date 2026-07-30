@@ -10,6 +10,7 @@ const TestBody = z.object({
   titleAr: z.string().min(1),
   subjectId: z.number().int().nullable().optional(),
   grade: z.string().min(1),
+  semester: z.string().optional().default("1"),
   link: z.string().url(),
 });
 

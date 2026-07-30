@@ -10,6 +10,7 @@ export const testsTable = pgTable("tests", {
   subjectId: integer("subject_id")
     .references(() => subjectsTable.id, { onDelete: "set null" }),
   grade: text("grade").notNull(),
+  semester: text("semester").notNull().default("1"), // الفصل الدراسي
   link: text("link").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });

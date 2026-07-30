@@ -91,7 +91,11 @@ function HomeRedirect() {
   useEffect(() => {
     if (isLoading) return;
     if (user) {
-      setLocation(user.grade ? '/dashboard' : '/grade-select');
+      if (user.role === 'super_admin') {
+        setLocation('/admin');
+      } else {
+        setLocation(user.grade ? '/dashboard' : '/grade-select');
+      }
     } else {
       setLocation('/login');
     }
