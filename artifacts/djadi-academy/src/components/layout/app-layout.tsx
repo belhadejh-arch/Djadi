@@ -23,29 +23,11 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import logoUrl from "@assets/IMG_0796_1785328682791.png";
+import { clearUserCache } from "@/components/protected-route";
 
 interface LayoutProps {
   children: ReactNode;
 }
-
-const bottomNavItems = [
-  { href: "/dashboard", label: "الرئيسية", labelFr: "Accueil", icon: Home },
-  { href: "/grade-calculator", label: "حساب المعدل", labelFr: "Moyenne", icon: Calculator },
-  { href: "/scientific-calculator", label: "الآلة الحاسبة", labelFr: "Calculatrice", icon: FlaskConical },
-  { href: "/review-channels", label: "قنوات المراجعة", labelFr: "Révision", icon: Youtube },
-  { href: "/settings", label: "الإعدادات", labelFr: "Paramètres", icon: Settings },
-];
-
-const sidebarNavItems = [
-  { href: "/dashboard", label: "الرئيسية", labelFr: "Accueil", icon: Home },
-  { href: "/subjects", label: "المواد", labelFr: "Matières", icon: BookOpen },
-  { href: "/baccalaureate", label: "البكالوريا", labelFr: "Baccalauréat", icon: GraduationCap },
-  { href: "/favorites", label: "المفضلة", labelFr: "Favoris", icon: Heart },
-  { href: "/grade-calculator", label: "حساب المعدل", labelFr: "Moyenne", icon: Calculator },
-  { href: "/scientific-calculator", label: "الآلة الحاسبة العلمية", labelFr: "Calculatrice", icon: FlaskConical },
-  { href: "/review-channels", label: "قنوات المراجعة", labelFr: "Révision", icon: Youtube },
-  { href: "/settings", label: "الإعدادات", labelFr: "Paramètres", icon: Settings },
-];
 
 export function AppLayout({ children }: LayoutProps) {
   const [location] = useLocation();
@@ -53,53 +35,64 @@ export function AppLayout({ children }: LayoutProps) {
   const logout = useLogout();
   const queryClient = useQueryClient();
   const { theme, setTheme } = useTheme();
-  const { lang, setLang } = useLang();
+  const { lang, setLang, tk } = useLang();
+  const { unreadCount } = useNotifications();
+
   const cycleLang = () => {
     const order: ("ar" | "fr" | "en")[] = ["ar", "fr", "en"];
-    const next = order[(order.indexOf(lang) + 1) % order.length];
-    setLang(next);
+    setLang(order[(order.indexOf(lang) + 1) % order.length]);
   };
-  const { unreadCount } = useNotifications();
 
   const handleLogout = () => {
     logout.mutate(undefined, {
       onSuccess: () => {
+        clearUserCache();
         queryClient.invalidateQueries({ queryKey: getGetMeQueryKey() });
       },
     });
   };
 
+  const bottomNavItems = [
+    { href: "/dashboard",             label: tk("nav.home"),           icon: Home },
+    { href: "/grade-calculator",      label: tk("nav.calculator"),      icon: Calculator },
+    { href: "/scientific-calculator", label: tk("nav.sciCalcShort"),    icon: FlaskConical },
+    { href: "/review-channels",       label: tk("nav.reviewChannels"),  icon: Youtube },
+    { href: "/settings",              label: tk("nav.settings"),        icon: Settings },
+  ];
+
+  const sidebarNavItems = [
+    { href: "/dashboard",             label: tk("nav.home"),           icon: Home },
+    { href: "/subjects",              label: tk("nav.subjects"),        icon: BookOpen },
+    { href: "/baccalaureate",         label: tk("nav.baccalaureate"),   icon: GraduationCap },
+    { href: "/favorites",             label: tk("nav.favorites"),       icon: Heart },
+    { href: "/grade-calculator",      label: tk("nav.calculator"),      icon: Calculator },
+    { href: "/scientific-calculator", label: tk("nav.sciCalc"),         icon: FlaskConical },
+    { href: "/review-channels",       label: tk("nav.reviewChannels"),  icon: Youtube },
+    { href: "/settings",              label: tk("nav.settings"),        icon: Settings },
+  ];
+
   return (
-    <div className="min-h-[100dvh] bg-background text-foreground flex flex-col md:flex-row" dir="rtl">
-      {/* Mobile Header */}
-      <header className="md:hidden sticky top-0 z-50 flex items-center justify-between p-4 bg-card border-b">
+    /* Fixed viewport — content scrolls inside, not the whole page */
+    <div className="h-[100dvh] overflow-hidden bg-background text-foreground flex flex-col md:flex-row" dir="rtl">
+
+      {/* ── Mobile Header ──────────────────────────────────────────────────── */}
+      <header className="md:hidden shrink-0 flex items-center justify-between px-4 py-3 bg-card border-b z-50">
         <div className="flex items-center gap-3">
-          <img src={logoUrl} alt="منصة جعدي" className="w-8 h-8 object-contain" />
-          <span className="font-bold text-lg text-primary">منصة جعدي</span>
+          <img src={logoUrl} alt={tk("app.name")} className="w-8 h-8 object-contain" />
+          <span className="font-bold text-lg text-primary">{tk("app.name")}</span>
         </div>
 
-        {/* Top-left actions (visually left because dir=rtl flips the flex row) */}
         <div className="flex items-center gap-1">
-          {/* Language Toggle */}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={cycleLang}
-            title={lang === "ar" ? "FR" : lang === "fr" ? "EN" : "AR"}
-            className="relative"
-          >
+          {/* Language toggle */}
+          <Button variant="ghost" size="icon" onClick={cycleLang} className="relative" title={lang === "ar" ? "FR" : lang === "fr" ? "EN" : "AR"}>
             <Globe className="h-5 w-5" />
             <span className="absolute -bottom-0.5 -left-0.5 text-[8px] font-bold leading-none bg-primary text-primary-foreground rounded px-0.5">
               {lang.toUpperCase()}
             </span>
           </Button>
 
-          {/* Dark Mode Toggle */}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-          >
+          {/* Dark / light toggle */}
+          <Button variant="ghost" size="icon" onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
             {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
           </Button>
 
@@ -122,76 +115,58 @@ export function AppLayout({ children }: LayoutProps) {
         </div>
       </header>
 
-      {/* Desktop Sidebar */}
-      <aside className="hidden md:flex w-72 flex-col bg-card border-l min-h-screen sticky top-0">
-        <div className="p-6 flex items-center gap-4 border-b">
-          <img src={logoUrl} alt="منصة جعدي" className="w-12 h-12 object-contain" />
+      {/* ── Desktop Sidebar ────────────────────────────────────────────────── */}
+      <aside className="hidden md:flex w-72 shrink-0 flex-col bg-card border-l h-full overflow-y-auto">
+        <div className="p-6 flex items-center gap-4 border-b shrink-0">
+          <img src={logoUrl} alt={tk("app.name")} className="w-12 h-12 object-contain" />
           <div>
-            <h1 className="font-bold text-xl text-primary">منصة جعدي</h1>
+            <h1 className="font-bold text-xl text-primary">{tk("app.name")}</h1>
             <p className="text-xs text-muted-foreground uppercase tracking-wider font-sans" dir="ltr">
               Mounassata Djadi
             </p>
           </div>
         </div>
 
-        <nav className="flex-1 p-4 space-y-2">
+        <nav className="flex-1 p-4 space-y-1">
           {sidebarNavItems.map((item) => {
-            const isActive =
-              location === item.href || location.startsWith(item.href + "/");
+            const isActive = location === item.href || location.startsWith(item.href + "/");
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center justify-between p-3 rounded-xl transition-all ${
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${
                   isActive
                     ? "bg-primary text-primary-foreground"
                     : "hover:bg-muted text-foreground"
                 }`}
               >
-                <div className="flex items-center gap-3">
-                  <item.icon className="h-5 w-5" />
-                  <span className="font-semibold text-lg">{item.label}</span>
-                </div>
-                <span
-                  className={`text-xs ${
-                    isActive ? "text-primary-foreground/80" : "text-muted-foreground"
-                  }`}
-                  dir="ltr"
-                >
-                  {item.labelFr}
-                </span>
+                <item.icon className="h-5 w-5 shrink-0" />
+                <span className="font-semibold">{item.label}</span>
               </Link>
             );
           })}
         </nav>
 
-        <div className="p-4 border-t space-y-4">
+        <div className="p-4 border-t space-y-3 shrink-0">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 min-w-0">
               <Avatar>
                 <AvatarImage src={user?.avatarUrl || ""} />
                 <AvatarFallback>{user?.fullName?.charAt(0) || "U"}</AvatarFallback>
               </Avatar>
-              <div className="flex flex-col">
-                <span className="text-sm font-bold">{user?.fullName}</span>
-                <span className="text-xs text-muted-foreground">{user?.grade || "No grade"}</span>
+              <div className="flex flex-col min-w-0">
+                <span className="text-sm font-bold truncate">{user?.fullName}</span>
+                <span className="text-xs text-muted-foreground">{user?.grade || "—"}</span>
               </div>
             </div>
-            <div className="flex items-center gap-1">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={cycleLang}
-                className="relative"
-                title={lang === "ar" ? "FR" : lang === "fr" ? "EN" : "AR"}
-              >
+            <div className="flex items-center gap-1 shrink-0">
+              <Button variant="ghost" size="icon" onClick={cycleLang} className="relative" title={lang === "ar" ? "FR" : lang === "fr" ? "EN" : "AR"}>
                 <Globe className="h-4 w-4" />
+                <span className="absolute -bottom-0.5 -left-0.5 text-[7px] font-bold leading-none bg-primary text-primary-foreground rounded px-0.5">
+                  {lang.toUpperCase()}
+                </span>
               </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              >
+              <Button variant="ghost" size="icon" onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
                 {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
               </Button>
               <Link href="/notifications">
@@ -212,21 +187,20 @@ export function AppLayout({ children }: LayoutProps) {
             onClick={handleLogout}
           >
             <LogOut className="h-4 w-4 ml-2" />
-            تسجيل الخروج
+            {tk("common.logout")}
           </Button>
         </div>
       </aside>
 
-      {/* Main Content */}
-      <main className="flex-1 pb-20 md:pb-0 overflow-y-auto">
+      {/* ── Main Content — scrolls independently ───────────────────────────── */}
+      <main className="flex-1 overflow-y-auto pb-20 md:pb-0 min-w-0">
         <div className="max-w-6xl mx-auto p-4 md:p-8">{children}</div>
       </main>
 
-      {/* Mobile Bottom Nav — 5 items with smaller icons */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-card border-t flex items-center justify-around py-1 pb-safe z-50">
+      {/* ── Mobile Bottom Nav ───────────────────────────────────────────────── */}
+      <nav className="md:hidden shrink-0 fixed bottom-0 left-0 right-0 bg-card border-t flex items-center justify-around py-1 pb-safe z-50">
         {bottomNavItems.map((item) => {
-          const isActive =
-            location === item.href || location.startsWith(item.href + "/");
+          const isActive = location === item.href || location.startsWith(item.href + "/");
           return (
             <Link
               key={item.href}
@@ -237,7 +211,7 @@ export function AppLayout({ children }: LayoutProps) {
             >
               <item.icon className="h-[18px] w-[18px] mb-0.5 shrink-0" />
               <span className="text-[9px] font-medium leading-tight text-center w-full truncate px-0.5">
-                {lang === "ar" ? item.label : item.labelFr}
+                {item.label}
               </span>
             </Link>
           );

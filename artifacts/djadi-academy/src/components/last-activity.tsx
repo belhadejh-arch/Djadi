@@ -16,16 +16,14 @@ export type ContentType = "lesson" | "exam" | "test" | "homework";
 
 const TYPE_META: Record<ContentType, {
   icon: React.ElementType;
-  labelAr: string;
-  labelFr: string;
-  labelEn: string;
   color: string;
   bg: string;
+  activityKey: "activity.lastLesson" | "activity.lastExam" | "activity.lastTest" | "activity.lastHomework";
 }> = {
-  lesson:   { icon: BookOpen, labelAr: "آخر درس",           labelFr: "Dernier cours",   labelEn: "Last Lesson",   color: "text-blue-600 dark:text-blue-400",    bg: "bg-blue-100 dark:bg-blue-900/30" },
-  exam:     { icon: FileText, labelAr: "آخر فرض",           labelFr: "Dernier examen",  labelEn: "Last Exam",     color: "text-purple-600 dark:text-purple-400", bg: "bg-purple-100 dark:bg-purple-900/30" },
-  test:     { icon: PenLine,  labelAr: "آخر اختبار",        labelFr: "Dernier test",    labelEn: "Last Test",     color: "text-amber-600 dark:text-amber-400",   bg: "bg-amber-100 dark:bg-amber-900/30" },
-  homework: { icon: Home,     labelAr: "آخر واجب منزلي",   labelFr: "Dernier devoir",  labelEn: "Last Homework", color: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-100 dark:bg-emerald-900/30" },
+  lesson:   { icon: BookOpen, activityKey: "activity.lastLesson",   color: "text-blue-600 dark:text-blue-400",    bg: "bg-blue-100 dark:bg-blue-900/30" },
+  exam:     { icon: FileText, activityKey: "activity.lastExam",     color: "text-purple-600 dark:text-purple-400", bg: "bg-purple-100 dark:bg-purple-900/30" },
+  test:     { icon: PenLine,  activityKey: "activity.lastTest",     color: "text-amber-600 dark:text-amber-400",   bg: "bg-amber-100 dark:bg-amber-900/30" },
+  homework: { icon: Home,     activityKey: "activity.lastHomework", color: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-100 dark:bg-emerald-900/30" },
 };
 
 function useLastActivity() {
@@ -43,7 +41,6 @@ function useLastActivity() {
 function getItemHref(act: any): string {
   const type: ContentType = act.contentType ?? "lesson";
   if (type === "lesson") return `/lessons/${act.lessonId ?? act.contentId}`;
-  // For exams/tests/homework, return to the subject if we don't have a direct route
   return `/subjects`;
 }
 
@@ -73,7 +70,7 @@ function timeAgo(dateStr: string, lang: string): string {
 }
 
 export function LastActivity() {
-  const { t, lang } = useLang();
+  const { tk, lang } = useLang();
   const { data: activities = [], isLoading } = useLastActivity();
 
   if (isLoading) {
@@ -90,20 +87,17 @@ export function LastActivity() {
 
   if (activities.length === 0) return null;
 
-  // Most recent item overall → used for the "Continue" button
   const mostRecent = activities.reduce((prev: any, curr: any) =>
     new Date(curr.viewedAt) > new Date(prev.viewedAt) ? curr : prev
   );
 
   return (
     <div className="space-y-3" dir="rtl">
-      {/* Header */}
       <h3 className="font-bold text-base flex items-center gap-2">
         <Clock className="w-4 h-4 text-primary" />
-        {t("آخر نشاط", "Dernière activité", "Last Activity")}
+        {tk("activity.lastActivity")}
       </h3>
 
-      {/* One card per content type */}
       <div className="space-y-2">
         {activities.map((act: any) => {
           const type: ContentType = act.contentType ?? "lesson";
@@ -118,9 +112,9 @@ export function LastActivity() {
                   <Icon className={`w-5 h-5 ${meta.color}`} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[11px] font-bold text-muted-foreground mb-0.5">{t(meta.labelAr, meta.labelFr, meta.labelEn)}</p>
+                  <p className="text-[11px] font-bold text-muted-foreground mb-0.5">{tk(meta.activityKey)}</p>
                   <p className="font-semibold text-sm truncate group-hover:text-primary transition-colors">
-                    {act.lessonTitle ?? t("عنصر", "Élément", "Item")}
+                    {act.lessonTitle ?? tk("common.item")}
                   </p>
                   <p className="text-xs text-muted-foreground mt-0.5">
                     {act.subjectName && <span className="font-medium">{act.subjectName} · </span>}
@@ -134,11 +128,10 @@ export function LastActivity() {
         })}
       </div>
 
-      {/* Continue Studying button */}
       <Link href={getItemHref(mostRecent)}>
         <Button className="w-full gap-2 rounded-xl h-11 font-bold text-sm" variant="default">
           <PlayCircle className="w-4 h-4" />
-          {t("متابعة الدراسة", "Continuer à étudier", "Continue Studying")}
+          {tk("activity.continueStudy")}
         </Button>
       </Link>
     </div>

@@ -56,19 +56,20 @@ const AdminAuditLogs      = lazy(() => import('@/pages/admin/audit-logs'));
 const AdminHomework       = lazy(() => import('@/pages/admin/homework'));
 const AdminStats          = lazy(() => import('@/pages/admin/stats'));
 
-// ── Query client (performance tuned) ───────────────────────────────────────
+// ── Query client ────────────────────────────────────────────────────────────
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: 1,
+      retry: 2,
+      retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 10_000),
       refetchOnWindowFocus: false,
-      staleTime: 30 * 1000,          // data is fresh for 30 s
-      gcTime: 5 * 60 * 1000,         // keep unused data 5 min
+      staleTime: 2 * 60 * 1000,   // data fresh for 2 min
+      gcTime: 30 * 60 * 1000,     // keep unused data 30 min (survives tab switches)
     },
   },
 });
 
-// ── Suspense fallback (skeleton) ────────────────────────────────────────────
+// ── Suspense fallback ────────────────────────────────────────────────────────
 function PageSkeleton() {
   return (
     <div className="p-6 space-y-4 animate-pulse">
@@ -84,7 +85,7 @@ function PageSkeleton() {
   );
 }
 
-// Replaces splash — immediately redirects based on auth state
+// Redirects root → correct page based on auth state
 function HomeRedirect() {
   const [, setLocation] = useLocation();
   const { data: user, isLoading } = useGetMe();
@@ -165,6 +166,10 @@ function Router() {
         <Route path="/settings">
           <ProtectedLayout><Settings /></ProtectedLayout>
         </Route>
+        <Route path="/favorites">
+          {/* Fixed: now wrapped in AppLayout like all other protected routes */}
+          <ProtectedLayout><Favorites /></ProtectedLayout>
+        </Route>
         <Route path="/about">
           <ProtectedLayout><About /></ProtectedLayout>
         </Route>
@@ -226,9 +231,6 @@ function Router() {
         </Route>
         <Route path="/admin/stats">
           <AdminRoute><AdminStats /></AdminRoute>
-        </Route>
-        <Route path="/favorites">
-          <ProtectedRoute><Favorites /></ProtectedRoute>
         </Route>
 
         <Route component={NotFound} />

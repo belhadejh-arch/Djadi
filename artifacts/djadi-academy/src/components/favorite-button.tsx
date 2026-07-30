@@ -34,7 +34,7 @@ function useFavoriteStatus(itemType: FavItemType, itemId: number) {
 }
 
 export function FavoriteButton({ itemType, itemId, itemTitle, className, size = "md" }: FavoriteButtonProps) {
-  const { t } = useLang();
+  const { tk } = useLang();
   const qc = useQueryClient();
 
   const { data: existingFav } = useFavoriteStatus(itemType, itemId);
@@ -63,7 +63,7 @@ export function FavoriteButton({ itemType, itemId, itemTitle, className, size = 
   };
   const iconSizeClasses = {
     sm: "w-3.5 h-3.5",
-    md: "w-4.5 h-4.5",
+    md: "w-4 h-4",
     lg: "w-5 h-5",
   };
 
@@ -71,9 +71,9 @@ export function FavoriteButton({ itemType, itemId, itemTitle, className, size = 
     <button
       onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggle.mutate(); }}
       disabled={toggle.isPending}
-      title={isFavorited ? t("إزالة من المفضلة", "Retirer des favoris", "Remove from favorites") : t("إضافة للمفضلة", "Ajouter aux favoris", "Add to favorites")}
+      title={isFavorited ? tk("favorites.removeFav") : tk("favorites.addFav")}
       className={cn(
-        `rounded-full flex items-center justify-center transition-all`,
+        "rounded-full flex items-center justify-center transition-all",
         sizeClasses[size],
         isFavorited
           ? "bg-rose-100 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400 hover:bg-rose-200 dark:hover:bg-rose-900/50"
