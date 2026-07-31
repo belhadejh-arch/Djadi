@@ -19,7 +19,7 @@ export default function Dashboard() {
 
   const { data: subjects = [] } = useListSubjects(
     validBranchId !== undefined ? { branchId: validBranchId } : undefined,
-    { query: { enabled: !!grade && !!validBranchId } }
+    { query: { enabled: !!grade && !!validBranchId, queryKey: ["subjects", grade, validBranchId] } }
   );
 
   const getGreeting = () => {

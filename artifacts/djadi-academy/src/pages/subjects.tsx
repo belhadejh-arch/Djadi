@@ -15,7 +15,7 @@ export default function Subjects() {
 
   const { data: subjects = [], isLoading: subjectsLoading } = useListSubjects(
     validBranchId !== undefined ? { branchId: validBranchId } : undefined,
-    { query: { enabled: !!grade } }
+    { query: { enabled: !!grade, queryKey: ["subjects", grade, validBranchId] } }
   );
 
   if (userLoading || subjectsLoading) {

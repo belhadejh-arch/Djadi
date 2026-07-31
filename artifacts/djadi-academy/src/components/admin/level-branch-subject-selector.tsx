@@ -1,6 +1,10 @@
 /**
  * Cascading selector: Level → Branch (filtered by level) → Subject (filtered by grade + branch)
  * Used across all admin content forms.
+ *
+ * Single source of truth: all options come from the shared catalog tables via the API.
+ * There are NO hardcoded fallback lists — if the catalog fails to load, an explicit
+ * error is shown instead of silently substituting stale data.
  */
 import { useQuery } from "@tanstack/react-query";
 import { adminApi } from "@/lib/admin-api";
@@ -10,11 +14,11 @@ import {
   SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 
-const FALLBACK_GRADES = [
-  { code: "premiere",  nameAr: "السنة الأولى ثانوي" },
-  { code: "deuxieme",  nameAr: "السنة الثانية ثانوي" },
-  { code: "troisieme", nameAr: "السنة الثالثة ثانوي" },
-];
+/** Map level code → Arabic name, built from the live catalog (for table displays). */
+export function useLevelNameMap(): Record<string, string> {
+  const { data: levels = [] } = useQuery({ queryKey: ["admin", "levels"], queryFn: adminApi.levels.list });
+  return Object.fromEntries((levels as any[]).map((l) => [l.code, l.nameAr]));
+}
 
 interface Props {
   grade: string;
@@ -33,18 +37,23 @@ export function LevelBranchSubjectSelector({
   subjectRequired = false,
   branchRequired = false,
 }: Props) {
-  const { data: levels = [] }   = useQuery({ queryKey: ["admin", "levels"],   queryFn: adminApi.levels.list });
-  const { data: branches = [] } = useQuery({ queryKey: ["admin", "branches"], queryFn: adminApi.branches.list });
-  const { data: subjects = [] } = useQuery({ queryKey: ["admin", "subjects"], queryFn: adminApi.subjects.list });
+  const levelsQ   = useQuery({ queryKey: ["admin", "levels"],   queryFn: adminApi.levels.list });
+  const branchesQ = useQuery({ queryKey: ["admin", "branches"], queryFn: adminApi.branches.list });
+  const subjectsQ = useQuery({ queryKey: ["admin", "subjects"], queryFn: adminApi.subjects.list });
 
-  const gradeOptions = levels.length > 0 ? levels : FALLBACK_GRADES;
+  const levels   = (levelsQ.data   ?? []) as any[];
+  const branches = (branchesQ.data ?? []) as any[];
+  const subjects = (subjectsQ.data ?? []) as any[];
+
+  const isLoading = levelsQ.isLoading || branchesQ.isLoading || subjectsQ.isLoading;
+  const isError   = levelsQ.isError || branchesQ.isError || subjectsQ.isError;
 
   // Find the DB-level whose code matches the selected grade
-  const selectedLevel = (levels as any[]).find((l) => l.code === grade);
+  const selectedLevel = levels.find((l) => l.code === grade);
 
   // Branches that belong to the selected level — supports multi-level (levelIds array)
   const filteredBranches = selectedLevel
-    ? (branches as any[]).filter((b) => {
+    ? branches.filter((b) => {
         const ids: number[] = Array.isArray(b.levelIds) && b.levelIds.length > 0
           ? b.levelIds
           : [b.levelId];
@@ -53,11 +62,19 @@ export function LevelBranchSubjectSelector({
     : [];
 
   // Subjects that match the grade and optionally the branch
-  const filteredSubjects = (subjects as any[]).filter((s) => {
+  const filteredSubjects = subjects.filter((s) => {
     if (s.grade !== grade) return false;
     if (branchId === null) return true;
     return s.branchId === null || s.branchId === branchId;
   });
+
+  if (isError) {
+    return (
+      <p className="text-sm text-destructive">
+        تعذر تحميل المستويات والشعب والمواد من قاعدة البيانات. أعد المحاولة لاحقاً.
+      </p>
+    );
+  }
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -71,10 +88,13 @@ export function LevelBranchSubjectSelector({
             onBranchIdChange(null);
             onSubjectIdChange(null);
           }}
+          disabled={isLoading}
         >
-          <SelectTrigger><SelectValue placeholder="اختر المستوى..." /></SelectTrigger>
+          <SelectTrigger>
+            <SelectValue placeholder={isLoading ? "جاري التحميل..." : "اختر المستوى..."} />
+          </SelectTrigger>
           <SelectContent>
-            {(gradeOptions as any[]).map((l) => (
+            {levels.map((l) => (
               <SelectItem key={l.code} value={l.code}>{l.nameAr}</SelectItem>
             ))}
           </SelectContent>
@@ -90,7 +110,7 @@ export function LevelBranchSubjectSelector({
             onBranchIdChange(v === "all" ? null : Number(v));
             onSubjectIdChange(null);
           }}
-          disabled={!grade}
+          disabled={isLoading || !grade}
         >
           <SelectTrigger><SelectValue placeholder="اختر الشعبة..." /></SelectTrigger>
           <SelectContent>
@@ -108,7 +128,7 @@ export function LevelBranchSubjectSelector({
         <Select
           value={subjectId ? String(subjectId) : "none"}
           onValueChange={(v) => onSubjectIdChange(v === "none" ? null : Number(v))}
-          disabled={!grade}
+          disabled={isLoading || !grade}
         >
           <SelectTrigger><SelectValue placeholder="اختر المادة..." /></SelectTrigger>
           <SelectContent>

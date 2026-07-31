@@ -4,7 +4,7 @@ import { Eye } from "lucide-react";
 import { adminApi } from "@/lib/admin-api";
 import { CrudTable } from "@/components/admin/crud-table";
 import { FormDialog } from "@/components/admin/form-dialog";
-import { LevelBranchSubjectSelector } from "@/components/admin/level-branch-subject-selector";
+import { LevelBranchSubjectSelector, useLevelNameMap } from "@/components/admin/level-branch-subject-selector";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -17,12 +17,6 @@ const SEMESTERS = [
   { value: "2", label: "الفصل الثاني" },
   { value: "3", label: "الفصل الثالث" },
 ];
-
-const GRADES: Record<string, string> = {
-  premiere:  "السنة الأولى",
-  deuxieme:  "السنة الثانية",
-  troisieme: "السنة الثالثة",
-};
 
 const empty = {
   titleAr: "",
@@ -41,6 +35,7 @@ export default function AdminHomework() {
   const [editing, setEditing] = useState<any>(null);
   const [form, setForm] = useState(empty);
   const [pdfPreview, setPdfPreview] = useState<{ url: string; title: string } | null>(null);
+  const levelNames = useLevelNameMap();
 
   const { data, isLoading } = useQuery({ queryKey: ["admin", "homework"], queryFn: adminApi.homework.list });
   const invalidate = () => {
@@ -90,7 +85,7 @@ export default function AdminHomework() {
         isDeleting={del.isPending}
         columns={[
           { header: "العنوان",  cell: (r) => <span className="font-medium">{r.titleAr}</span> },
-          { header: "المستوى", cell: (r) => GRADES[r.grade] ?? r.grade },
+          { header: "المستوى", cell: (r) => levelNames[r.grade] ?? r.grade },
           { header: "الفصل",   cell: (r) => semLabel(r.semester ?? "1") },
           { header: "عرض PDF", cell: (r) => r.link ? (
             <Button variant="ghost" size="sm" className="h-7 gap-1 text-xs"

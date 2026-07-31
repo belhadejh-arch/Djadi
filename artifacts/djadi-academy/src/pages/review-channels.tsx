@@ -1,139 +1,91 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronRight, Play, Clock, BookOpen, ArrowRight, Users } from "lucide-react";
+import { ChevronRight, Play, BookOpen, ArrowRight } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
-// ── Data ──────────────────────────────────────────────────────────────────
-interface Lesson {
-  id: string;
+const BASE_URL = import.meta.env.BASE_URL?.replace(/\/$/, "") || "";
+
+// ── Types (shape returned by GET /api/review-channels) ───────────────────
+interface ChannelVideo {
+  id: number;
   title: string;
-  duration: string;
-  youtubeId: string;
-  description?: string;
+  titleAr: string;
+  videoUrl: string;
+  sortOrder: number;
 }
 
 interface Channel {
-  id: string;
-  name: string;
-  teacher: string;
-  subject: string;
-  subjectColor: string;
-  avatarBg: string;
-  avatarInitials: string;
-  subscribers: string;
-  lessons: Lesson[];
+  id: number;
+  channelName: string;
+  teacherName: string;
+  subjectId: number | null;
+  subjectName: string | null;
+  subjectColor: string | null;
+  imageUrl: string | null;
+  videos: ChannelVideo[];
 }
 
-const CHANNELS: Channel[] = [
-  {
-    id: "ch-math",
-    name: "رياضيات البكالوريا",
-    teacher: "الأستاذ كمال بن علي",
-    subject: "الرياضيات",
-    subjectColor: "#2563eb",
-    avatarBg: "#dbeafe",
-    avatarInitials: "كب",
-    subscribers: "٨٥٠٠٠",
-    lessons: [
-      { id: "l1", title: "الدوال العددية — المفهوم والخصائص", duration: "٤٥ د", youtubeId: "dQw4w9WgXcQ", description: "مدخل إلى الدوال العددية وأنواعها" },
-      { id: "l2", title: "الاشتقاق — التعريف والقواعد الأساسية", duration: "٥٠ د", youtubeId: "dQw4w9WgXcQ", description: "قواعد الاشتقاق مع تطبيقات متنوعة" },
-      { id: "l3", title: "التكامل — النهج والتطبيقات", duration: "٥٥ د", youtubeId: "dQw4w9WgXcQ", description: "التكامل المحدود وغير المحدود" },
-      { id: "l4", title: "المتتاليات — الحسابية والهندسية", duration: "٤٠ د", youtubeId: "dQw4w9WgXcQ", description: "تعريف المتتاليات وحساب مجاميعها" },
-      { id: "l5", title: "الاحتمالات — القانون والتطبيق", duration: "٣٥ د", youtubeId: "dQw4w9WgXcQ", description: "حساب الاحتمالات البسيطة والمركبة" },
-    ],
-  },
-  {
-    id: "ch-physics",
-    name: "فيزياء وكيمياء BAC",
-    teacher: "الأستاذة سهيلة مرابط",
-    subject: "الفيزياء والكيمياء",
-    subjectColor: "#7c3aed",
-    avatarBg: "#ede9fe",
-    avatarInitials: "سم",
-    subscribers: "٦٢٠٠٠",
-    lessons: [
-      { id: "l1", title: "الميكانيك — قوانين نيوتن", duration: "٤٢ د", youtubeId: "dQw4w9WgXcQ", description: "القوانين الثلاثة لنيوتن مع حل مسائل" },
-      { id: "l2", title: "الكهرباء — التيار والمقاومة", duration: "٤٨ د", youtubeId: "dQw4w9WgXcQ", description: "الدوائر الكهربائية وقانون أوم" },
-      { id: "l3", title: "الضوئيات — الانكسار والانعكاس", duration: "٣٨ د", youtubeId: "dQw4w9WgXcQ", description: "ظاهرتا الانعكاس والانكسار والعدسات" },
-      { id: "l4", title: "الكيمياء العضوية — المركبات", duration: "٥٢ د", youtubeId: "dQw4w9WgXcQ", description: "تصنيف المركبات العضوية وخصائصها" },
-    ],
-  },
-  {
-    id: "ch-svt",
-    name: "علوم الطبيعة والحياة",
-    teacher: "الأستاذ عمر زروقي",
-    subject: "علوم الطبيعة والحياة",
-    subjectColor: "#059669",
-    avatarBg: "#d1fae5",
-    avatarInitials: "عز",
-    subscribers: "٤٩٠٠٠",
-    lessons: [
-      { id: "l1", title: "الجهاز العصبي — البنية والوظيفة", duration: "٤٦ د", youtubeId: "dQw4w9WgXcQ", description: "مكونات الجهاز العصبي وآلية عمله" },
-      { id: "l2", title: "الجينات والوراثة — قوانين مندل", duration: "٥٠ د", youtubeId: "dQw4w9WgXcQ", description: "قوانين الوراثة مع حل مسائل" },
-      { id: "l3", title: "المناعة — دفاعات الجسم", duration: "٤٤ د", youtubeId: "dQw4w9WgXcQ", description: "الجهاز المناعي والاستجابة المناعية" },
-    ],
-  },
-  {
-    id: "ch-arabic",
-    name: "اللغة العربية BAC",
-    teacher: "الأستاذ فيصل بوزيد",
-    subject: "اللغة العربية",
-    subjectColor: "#16a34a",
-    avatarBg: "#dcfce7",
-    avatarInitials: "فب",
-    subscribers: "٧٣٠٠٠",
-    lessons: [
-      { id: "l1", title: "النصوص الأدبية — التحليل والتفسير", duration: "٣٨ د", youtubeId: "dQw4w9WgXcQ", description: "منهجية تحليل النص الأدبي" },
-      { id: "l2", title: "قواعد اللغة — الإعراب المفصّل", duration: "٤٢ د", youtubeId: "dQw4w9WgXcQ", description: "قواعد الإعراب وعلامات البناء" },
-      { id: "l3", title: "المقال الأدبي — البناء والأسلوب", duration: "٣٥ د", youtubeId: "dQw4w9WgXcQ", description: "كيفية كتابة مقال أدبي متكامل" },
-      { id: "l4", title: "الشعر الحديث — الخصائص والأعلام", duration: "٤٠ د", youtubeId: "dQw4w9WgXcQ", description: "رواد الشعر الحديث وأبرز قصائدهم" },
-    ],
-  },
-  {
-    id: "ch-philo",
-    name: "الفلسفة والمنطق",
-    teacher: "الأستاذة نادية قاسم",
-    subject: "الفلسفة",
-    subjectColor: "#db2777",
-    avatarBg: "#fce7f3",
-    avatarInitials: "نق",
-    subscribers: "٣٨٠٠٠",
-    lessons: [
-      { id: "l1", title: "المقالة الفلسفية — المنهجية الكاملة", duration: "٤٥ د", youtubeId: "dQw4w9WgXcQ", description: "خطوات كتابة المقالة الفلسفية" },
-      { id: "l2", title: "الوعي والإدراك — المفاهيم الكبرى", duration: "٤٢ د", youtubeId: "dQw4w9WgXcQ", description: "نظريات الوعي والإدراك الحسي" },
-      { id: "l3", title: "الحرية والمسؤولية", duration: "٣٨ د", youtubeId: "dQw4w9WgXcQ", description: "إشكالية الحرية بين الفلاسفة" },
-    ],
-  },
-  {
-    id: "ch-hist",
-    name: "التاريخ والجغرافيا",
-    teacher: "الأستاذ رشيد حمداني",
-    subject: "التاريخ والجغرافيا",
-    subjectColor: "#b45309",
-    avatarBg: "#fef3c7",
-    avatarInitials: "رح",
-    subscribers: "٤١٠٠٠",
-    lessons: [
-      { id: "l1", title: "الحرب الباردة — الأسباب والنتائج", duration: "٤٤ د", youtubeId: "dQw4w9WgXcQ", description: "مراحل الحرب الباردة وأبرز أحداثها" },
-      { id: "l2", title: "تحرر الشعوب — النماذج والمقارنة", duration: "٤٠ د", youtubeId: "dQw4w9WgXcQ", description: "حركات التحرر في آسيا وأفريقيا" },
-      { id: "l3", title: "الجغرافيا الاقتصادية — الموارد", duration: "٣٥ د", youtubeId: "dQw4w9WgXcQ", description: "توزيع الموارد الطبيعية في العالم" },
-    ],
-  },
-];
+// ── Data: single source of truth — same DB the admin panel writes to ─────
+function useReviewChannels() {
+  return useQuery({
+    queryKey: ["review-channels"],
+    queryFn: async () => {
+      const res = await fetch(`${BASE_URL}/api/review-channels`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to load review channels");
+      return res.json() as Promise<Channel[]>;
+    },
+    staleTime: 30 * 1000,
+  });
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────
+function channelColor(ch: Channel): string {
+  return ch.subjectColor || "#6366f1";
+}
+
+function channelInitials(ch: Channel): string {
+  const parts = ch.teacherName.trim().split(/\s+/);
+  return parts.slice(0, 2).map((p) => p.charAt(0)).join("");
+}
+
+/** Extract a YouTube video id from common URL shapes; null if not YouTube. */
+function youtubeId(url: string): string | null {
+  const m = url.match(
+    /(?:youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]{11})/
+  );
+  return m ? m[1] : null;
+}
 
 // ── Avatar ────────────────────────────────────────────────────────────────
 function Avatar({ ch }: { ch: Channel }) {
+  const color = channelColor(ch);
+  if (ch.imageUrl) {
+    return (
+      <img
+        src={ch.imageUrl}
+        alt={ch.channelName}
+        className="w-12 h-12 rounded-xl object-cover shrink-0 shadow-sm"
+      />
+    );
+  }
   return (
     <div
       className="w-12 h-12 rounded-xl flex items-center justify-center text-base font-extrabold shrink-0 shadow-sm"
-      style={{ backgroundColor: ch.avatarBg, color: ch.subjectColor }}
+      style={{ backgroundColor: color + "20", color }}
     >
-      {ch.avatarInitials}
+      {channelInitials(ch)}
     </div>
   );
 }
 
-// ── Embedded YouTube Player ───────────────────────────────────────────────
-function VideoPlayer({ lesson, onClose }: { lesson: Lesson; onClose: () => void }) {
+// ── Embedded Player ───────────────────────────────────────────────────────
+function VideoPlayer({ video, onClose }: { video: ChannelVideo; onClose: () => void }) {
+  const ytId = youtubeId(video.videoUrl);
+  const src = ytId
+    ? `https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0&modestbranding=1`
+    : video.videoUrl;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -150,15 +102,15 @@ function VideoPlayer({ lesson, onClose }: { lesson: Lesson; onClose: () => void 
           <ArrowRight className="w-5 h-5" />
           رجوع
         </button>
-        <p className="text-white font-bold text-sm text-right truncate max-w-[60vw]">{lesson.title}</p>
+        <p className="text-white font-bold text-sm text-right truncate max-w-[60vw]">{video.titleAr || video.title}</p>
       </div>
 
       {/* Player */}
       <div className="flex-1 flex items-center justify-center p-2">
         <div className="w-full max-w-3xl aspect-video rounded-xl overflow-hidden shadow-2xl">
           <iframe
-            src={`https://www.youtube.com/embed/${lesson.youtubeId}?autoplay=1&rel=0&modestbranding=1`}
-            title={lesson.title}
+            src={src}
+            title={video.titleAr || video.title}
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
             allowFullScreen
             className="w-full h-full"
@@ -166,36 +118,24 @@ function VideoPlayer({ lesson, onClose }: { lesson: Lesson; onClose: () => void 
         </div>
       </div>
 
-      {/* Lesson info */}
+      {/* Video info */}
       <div className="p-4 shrink-0 text-right" dir="rtl">
-        <p className="text-white font-bold text-lg">{lesson.title}</p>
-        {lesson.description && (
-          <p className="text-white/60 text-sm mt-1">{lesson.description}</p>
-        )}
-        <div className="flex items-center gap-2 mt-2 justify-end">
-          <Clock className="w-3.5 h-3.5 text-white/50" />
-          <span className="text-white/50 text-xs">{lesson.duration}</span>
-        </div>
+        <p className="text-white font-bold text-lg">{video.titleAr || video.title}</p>
       </div>
     </motion.div>
   );
 }
 
 // ── Channel Detail ────────────────────────────────────────────────────────
-function ChannelDetail({
-  channel,
-  onBack,
-}: {
-  channel: Channel;
-  onBack: () => void;
-}) {
-  const [playingLesson, setPlayingLesson] = useState<Lesson | null>(null);
+function ChannelDetail({ channel, onBack }: { channel: Channel; onBack: () => void }) {
+  const [playingVideo, setPlayingVideo] = useState<ChannelVideo | null>(null);
+  const color = channelColor(channel);
 
   return (
     <div className="space-y-5 animate-in fade-in duration-300" dir="rtl">
       <AnimatePresence>
-        {playingLesson && (
-          <VideoPlayer lesson={playingLesson} onClose={() => setPlayingLesson(null)} />
+        {playingVideo && (
+          <VideoPlayer video={playingVideo} onClose={() => setPlayingVideo(null)} />
         )}
       </AnimatePresence>
 
@@ -212,75 +152,63 @@ function ChannelDetail({
       <div className="bg-card rounded-2xl border border-border p-5 flex items-center gap-4 shadow-sm">
         <Avatar ch={channel} />
         <div className="flex-1">
-          <h1 className="text-xl font-extrabold leading-tight">{channel.name}</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">{channel.teacher}</p>
-          <div className="flex items-center gap-3 mt-2">
-            <span
-              className="text-xs font-bold px-2.5 py-1 rounded-full"
-              style={{ backgroundColor: channel.subjectColor + "20", color: channel.subjectColor }}
-            >
-              {channel.subject}
-            </span>
-            <span className="flex items-center gap-1 text-xs text-muted-foreground">
-              <Users className="w-3 h-3" />
-              {channel.subscribers} مشترك
-            </span>
-          </div>
+          <h1 className="text-xl font-extrabold leading-tight">{channel.channelName}</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">{channel.teacherName}</p>
+          {channel.subjectName && (
+            <div className="flex items-center gap-3 mt-2">
+              <span
+                className="text-xs font-bold px-2.5 py-1 rounded-full"
+                style={{ backgroundColor: color + "20", color }}
+              >
+                {channel.subjectName}
+              </span>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Lessons */}
+      {/* Videos */}
       <div>
         <h2 className="text-base font-bold mb-3 flex items-center gap-2">
           <BookOpen className="w-4 h-4 text-primary" />
-          الدروس ({channel.lessons.length})
+          الدروس ({channel.videos.length})
         </h2>
 
-        <div className="space-y-2">
-          {channel.lessons.map((lesson, i) => (
-            <motion.button
-              key={lesson.id}
-              initial={{ opacity: 0, x: -12 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: i * 0.05 }}
-              onClick={() => setPlayingLesson(lesson)}
-              className="w-full bg-card border border-border rounded-xl p-4 flex items-center gap-4 hover:border-primary/40 hover:shadow-md transition-all group text-right"
-            >
-              {/* Number + Play */}
-              <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors group-hover:bg-opacity-100"
-                style={{ backgroundColor: channel.subjectColor + "20" }}
+        {channel.videos.length === 0 ? (
+          <div className="bg-card p-10 text-center rounded-2xl border-2 border-dashed border-border/50 text-muted-foreground">
+            لا توجد فيديوهات في هذه القناة بعد
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {channel.videos.map((video, i) => (
+              <motion.button
+                key={video.id}
+                initial={{ opacity: 0, x: -12 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: i * 0.05 }}
+                onClick={() => setPlayingVideo(video)}
+                className="w-full bg-card border border-border rounded-xl p-4 flex items-center gap-4 hover:border-primary/40 hover:shadow-md transition-all group text-right"
               >
-                <span
-                  className="text-sm font-extrabold group-hover:hidden"
-                  style={{ color: channel.subjectColor }}
+                {/* Number + Play */}
+                <div
+                  className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors"
+                  style={{ backgroundColor: color + "20" }}
                 >
-                  {i + 1}
-                </span>
-                <Play
-                  className="w-4 h-4 hidden group-hover:block"
-                  style={{ color: channel.subjectColor }}
-                />
-              </div>
+                  <span className="text-sm font-extrabold group-hover:hidden" style={{ color }}>
+                    {i + 1}
+                  </span>
+                  <Play className="w-4 h-4 hidden group-hover:block" style={{ color }} />
+                </div>
 
-              <div className="flex-1 min-w-0">
-                <p className="font-bold text-sm leading-tight group-hover:text-primary transition-colors">
-                  {lesson.title}
-                </p>
-                {lesson.description && (
-                  <p className="text-xs text-muted-foreground mt-0.5 truncate">
-                    {lesson.description}
+                <div className="flex-1 min-w-0">
+                  <p className="font-bold text-sm leading-tight group-hover:text-primary transition-colors">
+                    {video.titleAr || video.title}
                   </p>
-                )}
-              </div>
-
-              <div className="flex items-center gap-1 text-xs text-muted-foreground shrink-0">
-                <Clock className="w-3 h-3" />
-                {lesson.duration}
-              </div>
-            </motion.button>
-          ))}
-        </div>
+                </div>
+              </motion.button>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -288,15 +216,13 @@ function ChannelDetail({
 
 // ── Main Page ─────────────────────────────────────────────────────────────
 export default function ReviewChannels() {
-  const [selectedChannel, setSelectedChannel] = useState<Channel | null>(null);
+  const { data: channels, isLoading, isError } = useReviewChannels();
+  const [selectedId, setSelectedId] = useState<number | null>(null);
+
+  const selectedChannel = channels?.find((c) => c.id === selectedId) ?? null;
 
   if (selectedChannel) {
-    return (
-      <ChannelDetail
-        channel={selectedChannel}
-        onBack={() => setSelectedChannel(null)}
-      />
-    );
+    return <ChannelDetail channel={selectedChannel} onBack={() => setSelectedId(null)} />;
   }
 
   return (
@@ -309,76 +235,105 @@ export default function ReviewChannels() {
         <div>
           <h1 className="text-xl font-extrabold">قنوات المراجعة</h1>
           <p className="text-white/70 text-sm mt-0.5">
-            {CHANNELS.length} قناة · {CHANNELS.reduce((s, c) => s + c.lessons.length, 0)} درس
+            {channels
+              ? `${channels.length} قناة · ${channels.reduce((s, c) => s + c.videos.length, 0)} درس`
+              : "..."}
           </p>
         </div>
       </div>
 
+      {/* Loading */}
+      {isLoading && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Skeleton key={i} className="h-40 w-full rounded-2xl" />
+          ))}
+        </div>
+      )}
+
+      {/* Error */}
+      {isError && (
+        <div className="bg-card p-10 text-center rounded-2xl border-2 border-dashed border-border/50 text-destructive">
+          تعذر تحميل قنوات المراجعة. أعد المحاولة لاحقاً.
+        </div>
+      )}
+
+      {/* Empty */}
+      {channels && channels.length === 0 && (
+        <div className="bg-card p-12 text-center rounded-2xl border-2 border-dashed border-border/50 text-muted-foreground">
+          لا توجد قنوات مراجعة بعد
+        </div>
+      )}
+
       {/* Channel Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-        {CHANNELS.map((ch, i) => (
-          <motion.button
-            key={ch.id}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.06 }}
-            onClick={() => setSelectedChannel(ch)}
-            className="bg-card border border-border rounded-2xl p-4 text-right hover:shadow-lg hover:border-primary/30 transition-all group flex flex-col gap-3"
-          >
-            {/* Top: avatar + meta */}
-            <div className="flex items-center gap-2.5">
-              <Avatar ch={ch} />
-              <div className="flex-1 min-w-0">
-                <p className="font-extrabold text-sm leading-tight group-hover:text-primary transition-colors">
-                  {ch.name}
-                </p>
-                <p className="text-xs text-muted-foreground mt-0.5 truncate">{ch.teacher}</p>
-              </div>
-            </div>
-
-            {/* Subject badge + lesson count */}
-            <div className="flex items-center justify-between">
-              <span
-                className="text-[11px] font-bold px-2 py-0.5 rounded-full"
-                style={{ backgroundColor: ch.subjectColor + "20", color: ch.subjectColor }}
+      {channels && channels.length > 0 && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {channels.map((ch, i) => {
+            const color = channelColor(ch);
+            return (
+              <motion.button
+                key={ch.id}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.06 }}
+                onClick={() => setSelectedId(ch.id)}
+                className="bg-card border border-border rounded-2xl p-4 text-right hover:shadow-lg hover:border-primary/30 transition-all group flex flex-col gap-3"
               >
-                {ch.subject}
-              </span>
-              <div className="flex items-center gap-2.5 text-xs text-muted-foreground">
-                <span className="flex items-center gap-1">
-                  <BookOpen className="w-3 h-3" />
-                  {ch.lessons.length} دروس
-                </span>
-                <span className="flex items-center gap-1">
-                  <Users className="w-3 h-3" />
-                  {ch.subscribers}
-                </span>
-              </div>
-            </div>
-
-            {/* Lesson previews */}
-            <div className="space-y-1 border-t border-border pt-2.5">
-              {ch.lessons.slice(0, 2).map((l, li) => (
-                <div key={l.id} className="flex items-center gap-2">
-                  <span
-                    className="text-[10px] font-bold w-4 h-4 rounded flex items-center justify-center shrink-0"
-                    style={{ backgroundColor: ch.subjectColor + "20", color: ch.subjectColor }}
-                  >
-                    {li + 1}
-                  </span>
-                  <p className="text-xs text-muted-foreground truncate flex-1">{l.title}</p>
-                  <span className="text-[10px] text-muted-foreground/60 shrink-0">{l.duration}</span>
+                {/* Top: avatar + meta */}
+                <div className="flex items-center gap-2.5">
+                  <Avatar ch={ch} />
+                  <div className="flex-1 min-w-0">
+                    <p className="font-extrabold text-sm leading-tight group-hover:text-primary transition-colors">
+                      {ch.channelName}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-0.5 truncate">{ch.teacherName}</p>
+                  </div>
                 </div>
-              ))}
-              {ch.lessons.length > 2 && (
-                <p className="text-[10px] text-primary font-semibold pt-0.5">
-                  + {ch.lessons.length - 2} دروس أخرى
-                </p>
-              )}
-            </div>
-          </motion.button>
-        ))}
-      </div>
+
+                {/* Subject badge + video count */}
+                <div className="flex items-center justify-between">
+                  {ch.subjectName ? (
+                    <span
+                      className="text-[11px] font-bold px-2 py-0.5 rounded-full"
+                      style={{ backgroundColor: color + "20", color }}
+                    >
+                      {ch.subjectName}
+                    </span>
+                  ) : (
+                    <span />
+                  )}
+                  <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <BookOpen className="w-3 h-3" />
+                    {ch.videos.length} دروس
+                  </span>
+                </div>
+
+                {/* Video previews */}
+                {ch.videos.length > 0 && (
+                  <div className="space-y-1 border-t border-border pt-2.5">
+                    {ch.videos.slice(0, 2).map((v, vi) => (
+                      <div key={v.id} className="flex items-center gap-2">
+                        <span
+                          className="text-[10px] font-bold w-4 h-4 rounded flex items-center justify-center shrink-0"
+                          style={{ backgroundColor: color + "20", color }}
+                        >
+                          {vi + 1}
+                        </span>
+                        <p className="text-xs text-muted-foreground truncate flex-1">{v.titleAr || v.title}</p>
+                      </div>
+                    ))}
+                    {ch.videos.length > 2 && (
+                      <p className="text-[10px] text-primary font-semibold pt-0.5">
+                        + {ch.videos.length - 2} دروس أخرى
+                      </p>
+                    )}
+                  </div>
+                )}
+              </motion.button>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

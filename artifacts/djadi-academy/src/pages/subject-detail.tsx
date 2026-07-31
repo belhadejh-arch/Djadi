@@ -10,7 +10,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { getSubjectById } from "@/lib/branch-data";
 import { PdfViewer } from "@/components/pdf-viewer";
 import { useLang } from "@/lib/language-context";
 
@@ -127,27 +126,15 @@ export default function SubjectDetail() {
 
   const isTroisieme = user?.grade === "troisieme";
 
-  const staticSubject = !isNumeric ? getSubjectById(rawId) : undefined;
-
-  const subject = isNumeric
-    ? apiSubject
-      ? {
-          nameAr: apiSubject.nameAr,
-          nameFr: apiSubject.nameFr ?? apiSubject.name,
-          description: apiSubject.description,
-          color: apiSubject.color ?? "hsl(var(--primary))",
-          lessonCount: apiSubject.lessonCount,
-          icon: BookOpen,
-        }
-      : null
-    : staticSubject
+  // Single source of truth: subjects always come from the shared DB via the API
+  const subject = isNumeric && apiSubject
     ? {
-        nameAr: staticSubject.nameAr,
-        nameFr: staticSubject.nameFr,
-        description: null,
-        color: staticSubject.color,
-        lessonCount: null,
-        icon: staticSubject.icon,
+        nameAr: apiSubject.nameAr,
+        nameFr: apiSubject.nameFr ?? apiSubject.name,
+        description: apiSubject.description,
+        color: apiSubject.color ?? "hsl(var(--primary))",
+        lessonCount: apiSubject.lessonCount,
+        icon: BookOpen,
       }
     : null;
 

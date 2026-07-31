@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { adminApi } from "@/lib/admin-api";
 import { CrudTable } from "@/components/admin/crud-table";
+import { LevelBranchSubjectSelector } from "@/components/admin/level-branch-subject-selector";
 import { FormDialog } from "@/components/admin/form-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -40,36 +41,11 @@ export default function AdminReviewChannels() {
     queryFn: () => adminApi.reviewChannels.get(selectedChannel!.id),
     enabled: !!selectedChannel,
   });
-  const { data: levels = [] } = useQuery({ queryKey: ["admin", "levels"], queryFn: adminApi.levels.list });
-  const { data: branches = [] } = useQuery({ queryKey: ["admin", "branches"], queryFn: adminApi.branches.list });
-  const { data: subjects = [] } = useQuery({ queryKey: ["admin", "subjects"], queryFn: adminApi.subjects.list });
-  const invalidate = () => qc.invalidateQueries({ queryKey: ["admin", "review-channels"] });
-
-  const FALLBACK_GRADES = [
-    { code: "premiere",  nameAr: "السنة الأولى ثانوي" },
-    { code: "deuxieme",  nameAr: "السنة الثانية ثانوي" },
-    { code: "troisieme", nameAr: "السنة الثالثة ثانوي" },
-  ];
-  const gradeOptions = (levels as any[]).length > 0 ? levels : FALLBACK_GRADES;
-
-  // Find selected level record
-  const selectedLevel = (levels as any[]).find((l) => l.code === form._grade);
-
-  // Branches for selected level
-  const filteredBranches = selectedLevel
-    ? (branches as any[]).filter((b) => {
-        const ids: number[] = Array.isArray(b.levelIds) && b.levelIds.length > 0
-          ? b.levelIds : [b.levelId];
-        return ids.includes(selectedLevel.id);
-      })
-    : [];
-
-  // Subjects for selected grade + branch
-  const filteredSubjects = (subjects as any[]).filter((s) => {
-    if (s.grade !== form._grade) return false;
-    if (!form._branchId) return true;
-    return s.branchId === null || s.branchId === form._branchId;
-  });
+  const invalidate = () => {
+    qc.invalidateQueries({ queryKey: ["admin", "review-channels"] });
+    // Also invalidate the student-facing list so changes appear immediately
+    qc.invalidateQueries({ queryKey: ["review-channels"] });
+  };
 
   const create = useMutation({ mutationFn: adminApi.reviewChannels.create, onSuccess: () => { invalidate(); close(); toast({ title: "تم الإضافة" }); } });
   const update = useMutation({ mutationFn: ({ id, body }: any) => adminApi.reviewChannels.update(id, body), onSuccess: () => { invalidate(); close(); toast({ title: "تم التعديل" }); } });
@@ -175,58 +151,17 @@ export default function AdminReviewChannels() {
             <Input value={form.teacherName} onChange={f("teacherName")} />
           </div>
 
-          {/* Cascade: level → branch → subject (required) */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {/* Level */}
-            <div className="space-y-1">
-              <Label>المستوى <span className="text-destructive">*</span></Label>
-              <Select
-                value={form._grade}
-                onValueChange={(v) => setForm((p) => ({ ...p, _grade: v, _branchId: null, subjectId: null }))}
-              >
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {(gradeOptions as any[]).map((l) => (
-                    <SelectItem key={l.code} value={l.code}>{l.nameAr}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Branch */}
-            <div className="space-y-1">
-              <Label>الشعبة <span className="text-destructive">*</span></Label>
-              <Select
-                value={form._branchId ? String(form._branchId) : ""}
-                onValueChange={(v) => setForm((p) => ({ ...p, _branchId: Number(v), subjectId: null }))}
-                disabled={!form._grade}
-              >
-                <SelectTrigger><SelectValue placeholder="اختر الشعبة..." /></SelectTrigger>
-                <SelectContent>
-                  {filteredBranches.map((b: any) => (
-                    <SelectItem key={b.id} value={String(b.id)}>{b.nameAr}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Subject — required */}
-            <div className="space-y-1">
-              <Label>المادة <span className="text-destructive">*</span></Label>
-              <Select
-                value={form.subjectId ? String(form.subjectId) : ""}
-                onValueChange={(v) => setForm((p) => ({ ...p, subjectId: Number(v) }))}
-                disabled={!form._branchId}
-              >
-                <SelectTrigger><SelectValue placeholder={form._branchId ? "اختر المادة..." : "اختر الشعبة أولاً"} /></SelectTrigger>
-                <SelectContent>
-                  {filteredSubjects.map((s: any) => (
-                    <SelectItem key={s.id} value={String(s.id)}>{s.nameAr}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+          {/* Cascade: level → branch → subject (required) — from the shared catalog */}
+          <LevelBranchSubjectSelector
+            grade={form._grade}
+            branchId={form._branchId}
+            subjectId={form.subjectId}
+            onGradeChange={(v)     => setForm((p) => ({ ...p, _grade: v, _branchId: null, subjectId: null }))}
+            onBranchIdChange={(v)  => setForm((p) => ({ ...p, _branchId: v, subjectId: null }))}
+            onSubjectIdChange={(v) => setForm((p) => ({ ...p, subjectId: v }))}
+            branchRequired
+            subjectRequired
+          />
 
           <div className="space-y-1">
             <Label>رابط صورة القناة (اختياري)</Label>

@@ -5,7 +5,7 @@ import { adminApi } from "@/lib/admin-api";
 import { getListLessonsQueryKey } from "@workspace/api-client-react";
 import { CrudTable } from "@/components/admin/crud-table";
 import { FormDialog } from "@/components/admin/form-dialog";
-import { LevelBranchSubjectSelector } from "@/components/admin/level-branch-subject-selector";
+import { LevelBranchSubjectSelector, useLevelNameMap } from "@/components/admin/level-branch-subject-selector";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -45,6 +45,7 @@ export default function AdminLessons() {
   const [editing, setEditing] = useState<any>(null);
   const [form, setForm] = useState(empty);
   const [pdfPreview, setPdfPreview] = useState<{ url: string; title: string } | null>(null);
+  const levelNames = useLevelNameMap();
 
   const { data, isLoading } = useQuery({
     queryKey: ["admin", "lessons"],
@@ -110,7 +111,7 @@ export default function AdminLessons() {
         columns={[
           { header: "العنوان",  cell: (r) => <span className="font-medium">{r.titleAr}</span> },
           { header: "المادة",   cell: (r) => r.subjectName ?? r.subjectId },
-          { header: "المستوى", cell: (r) => r.grade },
+          { header: "المستوى", cell: (r) => levelNames[r.grade] ?? r.grade },
           { header: "النوع",   cell: (r) => <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${typeColors[r.type] ?? ""}`}>{r.type.toUpperCase()}</span> },
           { header: "عرض PDF", cell: (r) => r.pdfUrl ? (
             <Button variant="ghost" size="sm" className="h-7 gap-1 text-xs" onClick={() => setPdfPreview({ url: r.pdfUrl, title: r.titleAr })}>

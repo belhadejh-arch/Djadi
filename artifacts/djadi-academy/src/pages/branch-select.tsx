@@ -11,7 +11,7 @@ export default function BranchSelect() {
 
   const { data: branches = [], isLoading: branchesLoading } = useListBranches(
     grade ? { levelCode: grade } : undefined,
-    { query: { enabled: !!grade } }
+    { query: { enabled: !!grade, queryKey: ["branches", grade] } }
   );
 
   const { setBranch } = useBranch(user?.id, grade ?? null);

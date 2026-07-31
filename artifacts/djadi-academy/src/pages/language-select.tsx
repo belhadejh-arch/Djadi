@@ -2,9 +2,7 @@ import { useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { useGetMe } from "@workspace/api-client-react";
 import { Languages, ChevronRight } from "lucide-react";
-import { useBranch } from "@/lib/use-branch";
-import type { ThirdLanguage } from "@/lib/branch-data";
-import { type GradeId } from "@/lib/branch-data";
+import { useBranch, type ThirdLanguage } from "@/lib/use-branch";
 
 const LANGUAGES: {
   id: ThirdLanguage;
@@ -39,7 +37,7 @@ const LANGUAGES: {
 export default function LanguageSelect() {
   const [, setLocation] = useLocation();
   const { data: user } = useGetMe();
-  const grade = user?.grade as GradeId | undefined;
+  const grade = user?.grade ?? undefined;
 
   const { setThirdLanguage } = useBranch(user?.id, grade);
 

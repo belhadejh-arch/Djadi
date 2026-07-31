@@ -261,7 +261,7 @@ export default function AdminStats() {
               <CardContent className="p-5 flex items-center gap-4">
                 <div className="flex-1 space-y-2">
                   <p className="text-xs font-semibold text-muted-foreground mb-3">توزيع المشاهدات حسب النوع</p>
-                  {typeData.map((t, i) => {
+                  {typeData.map((t: { name: string; value: number }, i: number) => {
                     const pct = c.totalFileViews > 0 ? Math.round((t.value / c.totalFileViews) * 100) : 0;
                     return (
                       <div key={t.name} className="flex items-center gap-2">

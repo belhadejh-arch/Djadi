@@ -38,7 +38,11 @@ export default function AdminBaccalaureates() {
   const { data: levels = [] } = useQuery({ queryKey: ["admin", "levels"], queryFn: adminApi.levels.list });
   const { data: branches = [] } = useQuery({ queryKey: ["admin", "branches"], queryFn: adminApi.branches.list });
   const { data: subjects = [] } = useQuery({ queryKey: ["admin", "subjects"], queryFn: adminApi.subjects.list });
-  const invalidate = () => qc.invalidateQueries({ queryKey: ["admin", "baccalaureates"] });
+  const invalidate = () => {
+    qc.invalidateQueries({ queryKey: ["admin", "baccalaureates"] });
+    // Also invalidate the student-facing list so changes appear immediately
+    qc.invalidateQueries({ queryKey: ["baccalaureates"] });
+  };
 
   const create = useMutation({ mutationFn: adminApi.baccalaureates.create, onSuccess: () => { invalidate(); close(); toast({ title: "تم الإضافة" }); } });
   const update = useMutation({ mutationFn: ({ id, body }: any) => adminApi.baccalaureates.update(id, body), onSuccess: () => { invalidate(); close(); toast({ title: "تم التعديل" }); } });

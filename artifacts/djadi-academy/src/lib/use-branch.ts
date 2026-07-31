@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import type { ThirdLanguage } from "./branch-data";
+
+export type ThirdLanguage = "german" | "spanish" | "italian";
 
 export interface BranchState {
   branchId: string | null;

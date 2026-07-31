@@ -15,7 +15,7 @@ cp scripts/seed-catalog.ts lib/db/src/seed-catalog.ts
 rm lib/db/src/seed-catalog.ts
 ```
 
-`tsx` is not in PATH by default but is cached at `/home/runner/.npm/_npx/fd45a72a545557e9/node_modules/.bin/tsx`.
+`tsx` is not in PATH; run it via `npx -y tsx <file>` (cached npx paths change between sessions — do not hardcode them).
 
 **Why:** pnpm virtual store — `node_modules/pg` is only symlinked inside `lib/db/node_modules`, not the workspace root. Node ESM walks up from the file's directory, so the file must live inside a package that declares `pg`.
 

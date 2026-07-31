@@ -1,44 +1,96 @@
 import { useState } from "react";
 import { Link } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronRight, ChevronLeft, GraduationCap, BookOpen, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { BAC_YEARS, BAC_BRANCHES, getBacExamUrl } from "@/lib/bac-data";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useListBranches, useListSubjects } from "@workspace/api-client-react";
+
+const BASE_URL = import.meta.env.BASE_URL?.replace(/\/$/, "") || "";
+
+// Baccalaureate is always السنة الثالثة ثانوي
+const BAC_LEVEL_CODE = "troisieme";
+const FIRST_BAC_YEAR = 2008;
+const CURRENT_YEAR = new Date().getFullYear();
+const YEARS = Array.from({ length: CURRENT_YEAR - FIRST_BAC_YEAR + 1 }, (_, i) => CURRENT_YEAR - i);
+
+interface BacPaper {
+  id: number;
+  year: number;
+  branchId: number | null;
+  subjectId: number | null;
+  title: string | null;
+  link: string;
+}
+
+// Single source of truth: same table the admin panel manages
+function useBacPapers() {
+  return useQuery({
+    queryKey: ["baccalaureates"],
+    queryFn: async () => {
+      const res = await fetch(`${BASE_URL}/api/baccalaureates`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to load baccalaureate papers");
+      return res.json() as Promise<BacPaper[]>;
+    },
+    staleTime: 30 * 1000,
+  });
+}
 
 type Step = "year" | "branch" | "subject" | "exam";
 
 export default function Baccalaureate() {
   const [step, setStep] = useState<Step>("year");
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
-  const [selectedBranchId, setSelectedBranchId] = useState<string | null>(null);
-  const [selectedSubjectId, setSelectedSubjectId] = useState<string | null>(null);
-  const [examUrl, setExamUrl] = useState<string | null>(null);
+  const [selectedBranchId, setSelectedBranchId] = useState<number | null>(null);
+  const [selectedSubjectId, setSelectedSubjectId] = useState<number | null>(null);
 
-  const selectedBranch = BAC_BRANCHES.find((b) => b.id === selectedBranchId);
+  const { data: papers } = useBacPapers();
+  const { data: branches, isLoading: branchesLoading } = useListBranches(
+    { levelCode: BAC_LEVEL_CODE },
+    { query: { queryKey: ["branches", BAC_LEVEL_CODE] } }
+  );
+  const { data: allSubjects, isLoading: subjectsLoading } = useListSubjects(
+    selectedBranchId ? { branchId: selectedBranchId } : undefined,
+    { query: { enabled: !!selectedBranchId, queryKey: ["subjects", "bac", selectedBranchId] } }
+  );
+
+  const selectedBranch = branches?.find((b: any) => b.id === selectedBranchId);
+  const subjects = allSubjects ?? [];
+  const selectedSubject = (subjects as any[]).find((s) => s.id === selectedSubjectId);
+
+  // The paper for the current selection (if the admin added one)
+  const matchedPaper =
+    selectedYear && selectedBranchId && selectedSubjectId
+      ? papers?.find(
+          (p) =>
+            p.year === selectedYear &&
+            p.branchId === selectedBranchId &&
+            p.subjectId === selectedSubjectId
+        )
+      : undefined;
+  const examUrl = matchedPaper?.link ?? null;
 
   const handleYearSelect = (year: number) => {
     setSelectedYear(year);
     setStep("branch");
   };
 
-  const handleBranchSelect = (branchId: string) => {
+  const handleBranchSelect = (branchId: number) => {
     setSelectedBranchId(branchId);
+    setSelectedSubjectId(null);
     setStep("subject");
   };
 
-  const handleSubjectSelect = (subjectId: string) => {
+  const handleSubjectSelect = (subjectId: number) => {
     setSelectedSubjectId(subjectId);
-    if (selectedYear && selectedBranchId) {
-      const url = getBacExamUrl(selectedYear, selectedBranchId, subjectId);
-      setExamUrl(url ?? null);
-    }
     setStep("exam");
   };
 
   const goBack = () => {
     if (step === "branch") { setStep("year"); setSelectedBranchId(null); }
     else if (step === "subject") { setStep("branch"); setSelectedSubjectId(null); }
-    else if (step === "exam") { setStep("subject"); setExamUrl(null); }
+    else if (step === "exam") { setStep("subject"); }
   };
 
   const stepLabels: Record<Step, string> = {
@@ -51,10 +103,6 @@ export default function Baccalaureate() {
   const stepNumber: Record<Step, number> = {
     year: 1, branch: 2, subject: 3, exam: 4,
   };
-
-  const selectedSubject = selectedBranch?.subjects.find(
-    (s) => s.id === selectedSubjectId
-  );
 
   return (
     <div className="space-y-4 animate-in fade-in duration-500" dir="rtl">
@@ -126,7 +174,7 @@ export default function Baccalaureate() {
             <div>
               <h2 className="text-base font-bold mb-3">اختر السنة</h2>
               <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-7 gap-2">
-                {BAC_YEARS.map((year) => (
+                {YEARS.map((year) => (
                   <button
                     key={year}
                     onClick={() => handleYearSelect(year)}
@@ -139,49 +187,73 @@ export default function Baccalaureate() {
             </div>
           )}
 
-          {/* Step 2: Branch */}
+          {/* Step 2: Branch — from the shared catalog (same data as admin) */}
           {step === "branch" && (
             <div>
               <h2 className="text-base font-bold mb-3">
                 بكالوريا {selectedYear} — اختر الشعبة
               </h2>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
-                {BAC_BRANCHES.map((branch) => (
-                  <button
-                    key={branch.id}
-                    onClick={() => handleBranchSelect(branch.id)}
-                    className="bg-card border border-border rounded-xl p-3.5 text-center font-semibold text-sm hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all shadow-sm hover:shadow-md group"
-                  >
-                    <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-2 group-hover:bg-white/20">
-                      <GraduationCap className="w-5 h-5 text-primary group-hover:text-white" />
-                    </div>
-                    {branch.nameAr}
-                  </button>
-                ))}
-              </div>
+              {branchesLoading ? (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <Skeleton key={i} className="h-24 w-full rounded-xl" />
+                  ))}
+                </div>
+              ) : !branches || branches.length === 0 ? (
+                <div className="bg-card p-10 text-center rounded-2xl border-2 border-dashed border-border/50 text-muted-foreground">
+                  لا توجد شعب للسنة الثالثة ثانوي بعد
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
+                  {branches.map((branch: any) => (
+                    <button
+                      key={branch.id}
+                      onClick={() => handleBranchSelect(branch.id)}
+                      className="bg-card border border-border rounded-xl p-3.5 text-center font-semibold text-sm hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all shadow-sm hover:shadow-md group"
+                    >
+                      <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-2 group-hover:bg-white/20">
+                        <GraduationCap className="w-5 h-5 text-primary group-hover:text-white" />
+                      </div>
+                      {branch.nameAr}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
-          {/* Step 3: Subject */}
+          {/* Step 3: Subject — from the shared catalog (same data as admin) */}
           {step === "subject" && selectedBranch && (
             <div>
               <h2 className="text-base font-bold mb-3">
-                بكالوريا {selectedYear} — {selectedBranch.nameAr} — اختر المادة
+                بكالوريا {selectedYear} — {(selectedBranch as any).nameAr} — اختر المادة
               </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
-                {selectedBranch.subjects.map((subject) => (
-                  <button
-                    key={subject.id}
-                    onClick={() => handleSubjectSelect(subject.id)}
-                    className="bg-card border border-border rounded-xl p-3.5 text-right font-semibold text-sm hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all shadow-sm hover:shadow-md flex items-center gap-2.5"
-                  >
-                    <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center shrink-0 group-hover:bg-white/20">
-                      <BookOpen className="w-4 h-4 text-primary" />
-                    </div>
-                    {subject.nameAr}
-                  </button>
-                ))}
-              </div>
+              {subjectsLoading ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <Skeleton key={i} className="h-16 w-full rounded-xl" />
+                  ))}
+                </div>
+              ) : (subjects as any[]).length === 0 ? (
+                <div className="bg-card p-10 text-center rounded-2xl border-2 border-dashed border-border/50 text-muted-foreground">
+                  لا توجد مواد لهذه الشعبة بعد
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
+                  {(subjects as any[]).map((subject) => (
+                    <button
+                      key={subject.id}
+                      onClick={() => handleSubjectSelect(subject.id)}
+                      className="bg-card border border-border rounded-xl p-3.5 text-right font-semibold text-sm hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all shadow-sm hover:shadow-md flex items-center gap-2.5"
+                    >
+                      <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center shrink-0 group-hover:bg-white/20">
+                        <BookOpen className="w-4 h-4 text-primary" />
+                      </div>
+                      {subject.nameAr}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
@@ -189,7 +261,7 @@ export default function Baccalaureate() {
           {step === "exam" && (
             <div>
               <h2 className="text-xl font-bold mb-2">
-                {selectedYear} — {selectedBranch?.nameAr} — {selectedSubject?.nameAr}
+                {selectedYear} — {(selectedBranch as any)?.nameAr} — {selectedSubject?.nameAr}
               </h2>
 
               {examUrl ? (
