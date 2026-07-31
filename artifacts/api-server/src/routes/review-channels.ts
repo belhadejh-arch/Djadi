@@ -1,6 +1,7 @@
 import { Router, type IRouter, type Request, type Response } from "express";
 import { eq, inArray } from "drizzle-orm";
 import { db, reviewChannelsTable, reviewChannelVideosTable, subjectsTable } from "@workspace/db";
+import { maskVideoUrl } from "./secure-files";
 
 const router: IRouter = Router();
 
@@ -30,10 +31,14 @@ router.get("/review-channels", async (_req: Request, res: Response): Promise<voi
         .orderBy(reviewChannelVideosTable.sortOrder)
     : [];
 
+  // Mask video URLs: students never receive the raw stored link —
+  // YouTube becomes a contained nocookie embed, others the protected proxy path.
   res.json(
     channels.map((c) => ({
       ...c,
-      videos: videos.filter((v) => v.channelId === c.id),
+      videos: videos
+        .filter((v) => v.channelId === c.id)
+        .map((v) => ({ ...v, videoUrl: maskVideoUrl("channel-video", v.id, v.videoUrl) })),
     }))
   );
 });

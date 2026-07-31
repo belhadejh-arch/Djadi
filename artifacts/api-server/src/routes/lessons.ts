@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 import { db, lessonsTable, subjectsTable } from "@workspace/db";
 import { GetLessonParams, ListLessonsQueryParams } from "@workspace/api-zod";
 import { requireAuth } from "../middlewares/require-auth";
+import { internalFilePath, maskVideoUrl } from "./secure-files";
 
 const router: IRouter = Router();
 
@@ -105,17 +106,21 @@ router.get("/lessons/:id/content", requireAuth, async (req: Request, res: Respon
     return;
   }
 
-  const url = row.videoUrl ?? row.pdfUrl ?? row.linkUrl ?? null;
+  // Never expose the original external URL for documents/links — students
+  // get an internal protected path served through /api/files instead.
+  const protectedPdfUrl = row.pdfUrl ? internalFilePath("lesson", row.id) : null;
+  const protectedLinkUrl = !row.pdfUrl && row.linkUrl ? internalFilePath("lesson", row.id) : null;
+  const protectedVideoUrl = row.videoUrl ? maskVideoUrl("lesson-video", row.id, row.videoUrl) : null;
+  const url = protectedVideoUrl ?? protectedPdfUrl ?? protectedLinkUrl ?? null;
 
-  // Cache content URL for 5 minutes
-  res.setHeader("Cache-Control", "private, max-age=300");
+  res.setHeader("Cache-Control", "private, no-store");
   res.json({
     id: row.id,
     type: row.type,
     url,
-    pdfUrl: row.pdfUrl,
-    videoUrl: row.videoUrl,
-    linkUrl: row.linkUrl,
+    pdfUrl: protectedPdfUrl,
+    videoUrl: protectedVideoUrl,
+    linkUrl: protectedLinkUrl,
   });
 });
 

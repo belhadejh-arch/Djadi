@@ -199,6 +199,8 @@ describe("GET /api/baccalaureates (public)", () => {
         year: expect.any(Number),
         link: expect.any(String),
       });
+      // the public link must be the internal protected proxy path, never external
+      expect(p.link).toMatch(/^\/api\/files\/bac\/\d+$/);
       // public shape must not leak extra fields beyond the selected columns
       expect(Object.keys(p).sort()).toEqual(
         ["branchId", "id", "link", "subjectId", "title", "year"],
@@ -236,7 +238,8 @@ describe("admin → public sync: baccalaureates", () => {
     expect(mine.map((p: { year: number }) => p.year)).toEqual([2092, 2091]);
     expect(mine[0]).toMatchObject({
       title: "IT-Test Paper 2092",
-      link: "https://example.com/paper.pdf",
+      // external URL must never leak — students get the protected internal path
+      link: `/api/files/bac/${mine[0].id}`,
       subjectId: testSubjectId,
     });
   });

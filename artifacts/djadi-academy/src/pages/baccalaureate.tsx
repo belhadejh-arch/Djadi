@@ -265,23 +265,18 @@ export default function Baccalaureate() {
               </h2>
 
               {examUrl ? (
-                <div className="rounded-2xl overflow-hidden border border-border shadow-lg bg-card">
+                <div
+                  className="rounded-2xl overflow-hidden border border-border shadow-lg bg-card select-none"
+                  onContextMenu={(e) => e.preventDefault()}
+                >
                   <div className="flex items-center justify-between p-3 bg-muted border-b">
                     <span className="text-sm font-medium text-muted-foreground">الامتحان</span>
-                    <a
-                      href={examUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-primary hover:underline"
-                    >
-                      فتح في نافذة جديدة
-                    </a>
                   </div>
+                  {/* examUrl is the internal protected path (/api/files/bac/:id) — viewed in-app only */}
                   <iframe
-                    src={examUrl}
+                    src={`${BASE_URL}${examUrl}#toolbar=0&navpanes=0`}
                     title="exam"
-                    className="w-full h-[60vh] sm:h-[72vh]"
-                    allowFullScreen
+                    className="w-full h-[60vh] sm:h-[72vh] border-0"
                   />
                 </div>
               ) : (

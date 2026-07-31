@@ -189,7 +189,8 @@ export default function SubjectDetail() {
 
   const openPdf = (item: any) => {
     if (item.link) {
-      setPdfViewer({ url: item.link, title: item.titleAr || item.title });
+      // item.link is the internal protected path (/api/files/...), never the external URL
+      setPdfViewer({ url: `${BASE_URL}${item.link}`, title: item.titleAr || item.title });
       const contentType = TAB_TO_CONTENT_TYPE[activeTab] ?? "exam";
       if (contentType !== "lesson") {
         recordActivity.mutate({

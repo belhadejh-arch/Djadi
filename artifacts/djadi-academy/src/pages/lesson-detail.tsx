@@ -3,9 +3,10 @@ import { useParams, Link } from "wouter";
 import { useGetLesson } from "@workspace/api-client-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import {
-  ChevronRight, FileText, Clock, Calendar,
-  ExternalLink, AlertCircle, Lock,
+  ChevronRight, Clock, Calendar,
+  AlertCircle, Lock,
 } from "lucide-react";
+import { SecureVideoPlayer } from "@/components/secure-video-player";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -59,36 +60,15 @@ function ContentPlayer({ type, url, pdfUrl, videoUrl, linkUrl }: {
   }
 
   if (type === "video" && videoUrl) {
-    const isDirectVideo = /\.(mp4|webm|ogg)(\?|$)/i.test(videoUrl);
-    return isDirectVideo ? (
-      <div className="aspect-video bg-black select-none" onContextMenu={(e) => e.preventDefault()}>
-        <video
-          src={videoUrl}
-          controls
-          controlsList="nodownload noremoteplayback"
-          disablePictureInPicture
-          className="w-full h-full"
-        />
-      </div>
-    ) : (
-      <div className="aspect-video bg-black select-none" onContextMenu={(e) => e.preventDefault()}>
-        <iframe
-          src={videoUrl}
-          className="w-full h-full"
-          allowFullScreen
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          sandbox="allow-scripts allow-same-origin allow-presentation allow-forms"
-          title="video"
-        />
-      </div>
-    );
+    return <SecureVideoPlayer url={videoUrl} title="video" className="aspect-video" />;
   }
 
   if (type === "pdf" && pdfUrl) {
+    // pdfUrl is the internal protected path (/api/files/...) — never external
     return (
       <div className="w-full bg-muted select-none h-[60vh] sm:h-[72vh]" onContextMenu={(e) => e.preventDefault()}>
         <iframe
-          src={`${pdfUrl}#toolbar=0&navpanes=0`}
+          src={`${BASE_URL}${pdfUrl}#toolbar=0&navpanes=0`}
           className="w-full h-full border-0"
           title="document"
         />
@@ -97,18 +77,15 @@ function ContentPlayer({ type, url, pdfUrl, videoUrl, linkUrl }: {
   }
 
   if (linkUrl) {
+    // linkUrl is also served through the protected proxy — shown in-app,
+    // never opened in an external tab.
     return (
-      <div className="aspect-video bg-gradient-to-br from-primary/10 to-primary/5 flex flex-col items-center justify-center gap-4">
-        <ExternalLink className="w-16 h-16 text-primary opacity-70" />
-        <a
-          href={linkUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-xl font-bold hover:bg-primary/90 transition-colors"
-        >
-          <ExternalLink className="w-4 h-4" />
-          فتح الرابط
-        </a>
+      <div className="w-full bg-muted select-none h-[60vh] sm:h-[72vh]" onContextMenu={(e) => e.preventDefault()}>
+        <iframe
+          src={`${BASE_URL}${linkUrl}#toolbar=0&navpanes=0`}
+          className="w-full h-full border-0"
+          title="document"
+        />
       </div>
     );
   }

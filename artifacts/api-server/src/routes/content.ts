@@ -8,9 +8,18 @@ import { Router, type IRouter, type Request, type Response } from "express";
 import { and, eq } from "drizzle-orm";
 import { db, examsTable, testsTable, homeworkTable } from "@workspace/db";
 import { requireAuth } from "../middlewares/require-auth";
+import { internalFilePath } from "./secure-files";
 
 const router: IRouter = Router();
 router.use(requireAuth);
+
+/** Replace the raw external link with the internal protected file path. */
+function withProtectedLink<T extends { id: number; link?: string | null }>(
+  rows: T[],
+  kind: "exam" | "test" | "homework",
+): T[] {
+  return rows.map((r) => ({ ...r, link: internalFilePath(kind, r.id) }));
+}
 
 router.get("/exams", async (req: Request, res: Response): Promise<void> => {
   const { subjectId, grade } = req.query as Record<string, string>;
@@ -22,7 +31,7 @@ router.get("/exams", async (req: Request, res: Response): Promise<void> => {
   const rows = await db.select().from(examsTable)
     .where(conditions.length === 1 ? conditions[0] : conditions.length > 1 ? and(...conditions) : undefined)
     .orderBy(examsTable.createdAt);
-  res.json(rows);
+  res.json(withProtectedLink(rows, "exam"));
 });
 
 router.get("/tests", async (req: Request, res: Response): Promise<void> => {
@@ -35,7 +44,7 @@ router.get("/tests", async (req: Request, res: Response): Promise<void> => {
   const rows = await db.select().from(testsTable)
     .where(conditions.length === 1 ? conditions[0] : conditions.length > 1 ? and(...conditions) : undefined)
     .orderBy(testsTable.createdAt);
-  res.json(rows);
+  res.json(withProtectedLink(rows, "test"));
 });
 
 router.get("/homework", async (req: Request, res: Response): Promise<void> => {
@@ -48,7 +57,7 @@ router.get("/homework", async (req: Request, res: Response): Promise<void> => {
   const rows = await db.select().from(homeworkTable)
     .where(conditions.length === 1 ? conditions[0] : conditions.length > 1 ? and(...conditions) : undefined)
     .orderBy(homeworkTable.createdAt);
-  res.json(rows);
+  res.json(withProtectedLink(rows, "homework"));
 });
 
 export default router;

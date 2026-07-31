@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronRight, Play, BookOpen, ArrowRight } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { SecureVideoPlayer } from "@/components/secure-video-player";
 
 const BASE_URL = import.meta.env.BASE_URL?.replace(/\/$/, "") || "";
 
@@ -49,14 +50,6 @@ function channelInitials(ch: Channel): string {
   return parts.slice(0, 2).map((p) => p.charAt(0)).join("");
 }
 
-/** Extract a YouTube video id from common URL shapes; null if not YouTube. */
-function youtubeId(url: string): string | null {
-  const m = url.match(
-    /(?:youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]{11})/
-  );
-  return m ? m[1] : null;
-}
-
 // ── Avatar ────────────────────────────────────────────────────────────────
 function Avatar({ ch }: { ch: Channel }) {
   const color = channelColor(ch);
@@ -79,13 +72,8 @@ function Avatar({ ch }: { ch: Channel }) {
   );
 }
 
-// ── Embedded Player ───────────────────────────────────────────────────────
+// ── Embedded Player (hardened: youtube-nocookie + click shields) ─────────
 function VideoPlayer({ video, onClose }: { video: ChannelVideo; onClose: () => void }) {
-  const ytId = youtubeId(video.videoUrl);
-  const src = ytId
-    ? `https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0&modestbranding=1`
-    : video.videoUrl;
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -108,11 +96,10 @@ function VideoPlayer({ video, onClose }: { video: ChannelVideo; onClose: () => v
       {/* Player */}
       <div className="flex-1 flex items-center justify-center p-2">
         <div className="w-full max-w-3xl aspect-video rounded-xl overflow-hidden shadow-2xl">
-          <iframe
-            src={src}
+          <SecureVideoPlayer
+            url={video.videoUrl}
             title={video.titleAr || video.title}
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
-            allowFullScreen
+            autoplay
             className="w-full h-full"
           />
         </div>

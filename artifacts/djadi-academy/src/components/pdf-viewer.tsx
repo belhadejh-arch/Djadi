@@ -1,6 +1,9 @@
 /**
- * In-app PDF viewer — displays a PDF URL inside an iframe overlay
+ * In-app PDF viewer — displays a protected PDF path inside an iframe overlay
  * so the user never leaves the app or opens an external browser.
+ *
+ * Hardened: no toolbar (no download/print buttons), no external-open button,
+ * right-click menu disabled, text selection disabled.
  */
 import { ArrowRight, FileText, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -19,7 +22,8 @@ export function PdfViewer({ url, title, onClose }: PdfViewerProps) {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 20 }}
-        className="fixed inset-0 z-50 bg-background flex flex-col"
+        className="fixed inset-0 z-50 bg-background flex flex-col select-none"
+        onContextMenu={(e) => e.preventDefault()}
       >
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b bg-card shrink-0" dir="rtl">
@@ -43,7 +47,10 @@ export function PdfViewer({ url, title, onClose }: PdfViewerProps) {
         </div>
 
         {/* PDF iframe */}
-        <div className="flex-1 overflow-hidden">
+        <div
+          className="flex-1 overflow-hidden select-none"
+          onContextMenu={(e) => e.preventDefault()}
+        >
           <iframe
             src={`${url}#toolbar=0&navpanes=0&scrollbar=1`}
             className="w-full h-full border-0"
